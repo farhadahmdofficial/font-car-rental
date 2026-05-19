@@ -75,6 +75,58 @@ export default function CarDetails({ params }) {
     }, 2000);
   };
 
+
+  // app/cars/[id]/page.jsx এর ভেতরের ফাংশনটি এভাবে আপডেট করুন:
+
+// const handleBookingConfirm = async (e) => {
+//   e.preventDefault();
+  
+//   // ফর্মের ভ্যালুগুলো রিড করার জন্য (সহজ উপায়ে রেফ বা স্টেট ছাড়াই করা যায়)
+//   const formData = new FormData(e.target);
+//   const userName = formData.get('userName');
+//   const userEmail = formData.get('userEmail');
+
+//   try {
+//     const response = await fetch('/api/v1/bookings', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         carId: car._id,
+//         userName,
+//         userEmail
+//       }),
+//     });
+
+//     const result = await response.json();
+
+//     if (result.success) {
+//       setIsBooked(true);
+      
+//       // ২ সেকেন্ড পর মোডাল বন্ধ করা
+//       setTimeout(() => {
+//         setIsModalOpen(false);
+//         setIsBooked(false);
+//       }, 2000);
+//     } else {
+//       alert("Booking pipeline failed: " + result.message);
+//     }
+//   } catch (err) {
+//     console.error("Booking error:", err);
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
@@ -266,199 +318,6 @@ export default function CarDetails({ params }) {
 
 
 
-
-
-
-// 'use client';
-
-// import { useEffect, useState } from 'react';
-// import Link from 'next/link';
-// import Image from 'next/image';
-
-// export default function CarDetails({ params }) {
-//   // 🔄 Next.js ১৬+ এর নিরাপদ প্যারামস হ্যান্ডলিং
-//   const [carId, setCarId] = useState(null);
-//   const [car, setCar] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [isBooked, setIsBooked] = useState(false);
-
-//   // ১. প্রথমে params থেকে আইডি আনর্যাপ করা
-//   useEffect(() => {
-//     Promise.resolve(params).then((resolvedParams) => {
-//       if (resolvedParams?.id) {
-//         setCarId(resolvedParams.id);
-//       } else {
-//         setLoading(false);
-//       }
-//     });
-//   }, [params]);
-
-//   // ২. আইডি পাওয়ার পর data.json থেকে কার খুঁজে বের করা
-//   useEffect(() => {
-//     if (!carId) return;
-
-//     fetch('/data.json')
-//       .then((res) => res.json())
-//       .then((data) => {
-//         const foundCar = data.find((item) => item._id === carId);
-//         setCar(foundCar);
-//         setLoading(false);
-//       })
-//       .catch((err) => {
-//         console.error('Error fetching car specs:', err);
-//         setLoading(false);
-//       });
-//   }, [carId]);
-
-//   // 🎯 বুকিং সাবমিট হ্যান্ডলার
-//   const handleBookingConfirm = (e) => {
-//     e.preventDefault();
-//     setIsBooked(true);
-//     setTimeout(() => {
-//       setIsModalOpen(false);
-//       setIsBooked(false);
-//     }, 2000);
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
-//         LOADING SPECIFICATION MATRIX...
-//       </div>
-//     );
-//   }
-
-//   if (!car) {
-//     return (
-//       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
-//         <p className="text-sm text-rose-500">❌ NODE_NOT_FOUND: 404</p>
-//         <p className="text-[10px] text-gray-500">Requested ID: {carId || 'Undefined'}</p>
-//         <Link href="/" className="text-xs text-[#00ffcc] underline tracking-wider mt-2">
-//           RETURN TO FLEET GRID
-//         </Link>
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <main className="min-h-screen bg-[#030712] text-white py-20 px-4 md:px-8 relative overflow-hidden">
-//       <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[180px] pointer-events-none" />
-
-//       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
-//         {/* 🔙 BACK NAVIGATION */}
-//         <Link href="/" className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-[#00ffcc] transition-colors gap-2 group">
-//           <span className="transform group-hover:-translate-x-1 transition-transform">←</span> BACK TO FLEET GRID
-//         </Link>
-
-//         {/* 🚙 TWO-COLUMN DETAILS LAYOUT */}
-//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-//           {/* LEFT: IMAGE TERMINAL */}
-//           <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#090d16]/60 backdrop-blur-md p-2">
-//             <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden">
-//               <Image src={car.img} alt={car.name} className="w-full h-full object-cover" fill />
-//               <span className="absolute top-4 left-4 font-mono text-[10px] tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-md backdrop-blur-md">
-//                 {car.availability}
-//               </span>
-//             </div>
-//           </div>
-
-//           {/* RIGHT: INFO DATA PANELS */}
-//           <div className="space-y-6">
-//             <div>
-//               <span className="font-mono text-xs text-[#00ffcc] uppercase tracking-widest">{car.brand} Fleet</span>
-//               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1">{car.name}</h1>
-//             </div>
-
-//             {/* RATE DISPLAY */}
-//             <div className="bg-[#090d16]/80 border border-white/5 rounded-xl p-4 flex items-center justify-between">
-//               <span className="text-xs font-mono text-gray-400 uppercase">Deployment Rate</span>
-//               <p className="text-2xl font-black text-[#00ffcc]">
-//                 ${car.pricePerDay}<span className="text-xs text-gray-500 font-mono font-normal"> / 24 HR CYCLE</span>
-//               </p>
-//             </div>
-
-//             {/* TECH SPECIFICATIONS GRID */}
-//             <div className="space-y-3">
-//               <h3 className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Specifications</h3>
-//               <div className="grid grid-cols-2 gap-3 font-mono text-xs">
-//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
-//                   <span className="text-gray-500 text-[10px] uppercase">Transmission</span>
-//                   <span className="text-white font-bold mt-1">⚙️ {car.transmission}</span>
-//                 </div>
-//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
-//                   <span className="text-gray-500 text-[10px] uppercase">Propulsion System</span>
-//                   <span className="text-white font-bold mt-1">⛽ {car.fuelType}</span>
-//                 </div>
-//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
-//                   <span className="text-gray-500 text-[10px] uppercase">Core Registry</span>
-//                   <span className="text-white font-bold mt-1">🆔 {car._id}</span>
-//                 </div>
-//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
-//                   <span className="text-gray-500 text-[10px] uppercase">GPS Synchronization</span>
-//                   <span className="text-emerald-400 font-bold mt-1">📡 Active</span>
-//                 </div>
-//               </div>
-//             </div>
-
-//             {/* ⚡ BOOK NOW BUTTON */}
-//             <button
-//               onClick={() => setIsModalOpen(true)}
-//               className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase text-sm py-4 rounded-xl tracking-widest transition-all duration-300 shadow-[0_0_20px_rgba(0,255,204,0.2)]"
-//             >
-//               Initialize Deployment (Book Now)
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* 🔮 INTERACTIVE MODAL INTERFACE */}
-//       {isModalOpen && (
-//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-//           <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6">
-//             <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white font-mono text-sm">✕</button>
-
-//             {isBooked ? (
-//               <div className="text-center py-8 space-y-3">
-//                 <div className="text-4xl animate-bounce">⚡</div>
-//                 <h3 className="text-xl font-black uppercase text-[#00ffcc]">Node Allocated!</h3>
-//                 <p className="text-xs font-mono text-gray-400">Your request has been compiled into the secure registry.</p>
-//               </div>
-//             ) : (
-//               <>
-//                 <div className="space-y-1 font-mono">
-//                   <span className="text-[10px] text-[#00ffcc] uppercase tracking-widest">Protocol Setup</span>
-//                   <h2 className="text-xl font-bold uppercase tracking-tight text-white">Confirm Node Lease</h2>
-//                   <p className="text-xs text-gray-400">Review specs for <span className="text-white font-bold">{car.name}</span></p>
-//                 </div>
-
-//                 <form onSubmit={handleBookingConfirm} className="space-y-4 font-mono text-xs">
-//                   <div className="space-y-1">
-//                     <label className="text-gray-500 block">User Node Identifier (Full Name)</label>
-//                     <input required type="text" placeholder="John Doe" className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc]" />
-//                   </div>
-//                   <div className="space-y-1">
-//                     <label className="text-gray-500 block">Comms Channel (Email)</label>
-//                     <input required type="email" placeholder="john@grid.com" className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc]" />
-//                   </div>
-                  
-//                   <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center">
-//                     <span className="text-gray-400">Total Calculation:</span>
-//                     <span className="text-white font-bold text-sm">${car.pricePerDay} USD</span>
-//                   </div>
-
-//                   <button type="submit" className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider transition-colors">
-//                     Confirm Secure Lease
-//                   </button>
-//                 </form>
-//               </>
-//             )}
-//           </div>
-//         </div>
-//       )}
-//     </main>
-//   );
-// }
 
 
 
