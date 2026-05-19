@@ -10,7 +10,8 @@ export default function AvailableCars() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/data.json')
+    // fetch('/data.json')
+    fetch(process.env.NEXT_PUBLIC_ALL_CARS_API)
       .then((res) => res.json())
       .then((data) => {
         console.log("Fetched Data in Home:", data); // ব্রাউজার কনসোলে ডাটা চেক করার জন্য

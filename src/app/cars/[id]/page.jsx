@@ -50,11 +50,10 @@ export default function CarDetails({ params }) {
   useEffect(() => {
     if (!carId) return;
 
-    fetch('/data.json')
+    fetch(process.env.NEXT_PUBLIC_SINGLE_CARS_API + `/${carId}`)
       .then((res) => res.json())
       .then((data) => {
-        const foundCar = data.find((item) => item._id === carId);
-        setCar(foundCar);
+        setCar(data);
         setLoading(false);
       })
       .catch((err) => {

@@ -10,7 +10,8 @@ export default function AvailableCars() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/data.json')
+    // fetch('/data.json')
+    fetch(process.env.NEXT_PUBLIC_ALL_CARS_API)
       .then((res) => res.json())
       .then((data) => {
         // 🚀 কোনো স্লাইস বা ফিল্টার ছাড়া সরাসরি সম্পূর্ণ ডাটা সেটে রাখা হলো
