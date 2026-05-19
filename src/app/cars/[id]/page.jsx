@@ -1,28 +1,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -73,55 +51,6 @@ export default function CarDetails({ params }) {
       setIsBooked(false);
     }, 2000);
   };
-
-
-  // app/cars/[id]/page.jsx এর ভেতরের ফাংশনটি এভাবে আপডেট করুন:
-
-// const handleBookingConfirm = async (e) => {
-//   e.preventDefault();
-  
-//   // ফর্মের ভ্যালুগুলো রিড করার জন্য (সহজ উপায়ে রেফ বা স্টেট ছাড়াই করা যায়)
-//   const formData = new FormData(e.target);
-//   const userName = formData.get('userName');
-//   const userEmail = formData.get('userEmail');
-
-//   try {
-//     const response = await fetch('/api/v1/bookings', {
-//       method: 'POST',
-//       headers: {
-//         'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({
-//         carId: car._id,
-//         userName,
-//         userEmail
-//       }),
-//     });
-
-//     const result = await response.json();
-
-//     if (result.success) {
-//       setIsBooked(true);
-      
-//       // ২ সেকেন্ড পর মোডাল বন্ধ করা
-//       setTimeout(() => {
-//         setIsModalOpen(false);
-//         setIsBooked(false);
-//       }, 2000);
-//     } else {
-//       alert("Booking pipeline failed: " + result.message);
-//     }
-//   } catch (err) {
-//     console.error("Booking error:", err);
-//   }
-// };
-
-
-
-
-
-
-
 
 
 

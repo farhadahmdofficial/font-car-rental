@@ -1,21 +1,23 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import CarCard from '@/components/CarCard'; // পাথ ঠিক আছে কিনা তা নিশ্চিত করুন
+import CarCard from '@/components/CarCard';
 
 export default function AvailableCars() {
   const [cars, setCars] = useState([]);
+  const [filteredCars, setFilteredCars] = useState([]); // 🔎 ফিল্টার করা ডাটা রাখার জন্য স্টেট
+  const [searchQuery, setSearchQuery] = useState(''); // 📝 সার্চ টেক্সট স্টেট
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // fetch('/data.json')
     fetch(process.env.NEXT_PUBLIC_ALL_CARS_API)
       .then((res) => res.json())
       .then((data) => {
-        // 🚀 কোনো স্লাইস বা ফিল্টার ছাড়া সরাসরি সম্পূর্ণ ডাটা সেটে রাখা হলো
         setCars(data);
+        setFilteredCars(data); // শুরুতে সব গাড়িই ফিল্টারড লিস্টে থাকবে
         setLoading(false);
       })
       .catch((err) => {
@@ -23,6 +25,24 @@ export default function AvailableCars() {
         setLoading(false);
       });
   }, []);
+
+  // 🎯 রিয়াল-টাইম লাইভ সার্চ লজিক
+  useEffect(() => {
+    const query = searchQuery.toLowerCase().trim();
+    
+    if (!query) {
+      setFilteredCars(cars); // সার্চ ফাকা থাকলে সব কার দেখাবে
+    } else {
+      const filtered = cars.filter((car) => {
+        return (
+          car.carName?.toLowerCase().includes(query) ||
+          car.carType?.toLowerCase().includes(query) ||
+          car.pickupLocation?.toLowerCase().includes(query)
+        );
+      });
+      setFilteredCars(filtered);
+    }
+  }, [searchQuery, cars]);
 
   return (
     <section className="relative py-24 bg-[#030712] px-4 md:px-8 overflow-hidden w-full border-t border-white/5">
@@ -32,9 +52,9 @@ export default function AvailableCars() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         
-        {/* 📑 SECTION HEADER */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
-          <div className="space-y-2 text-center md:text-left">
+        {/* 📑 SECTION HEADER & SEARCH INPUT */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-6">
+          <div className="space-y-2 text-center lg:text-left">
             <div className="inline-block font-mono text-[10px] tracking-[0.2em] text-[#00ffcc] uppercase border-b border-[#00ffcc]/30 pb-1">
               Live Fleet Status
             </div>
@@ -42,15 +62,34 @@ export default function AvailableCars() {
               Available <span className="text-[#00ffcc] drop-shadow-[0_0_10px_rgba(0,255,204,0.3)]">Car Matrix</span>
             </h2>
             <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
-              Verified nodes currently active on the grid network. Ready for immediate deployment and data synchronization.
+              Verified nodes currently active on the grid network. Ready for immediate deployment.
             </p>
           </div>
 
-          {/* See All Redirect Link */}
-          <div className="flex justify-center">
+          {/* ⚡ INTERACTIVE SEARCH BAR & REDIRECT LINK */}
+          <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto">
+            <div className="relative w-full sm:w-80 font-mono text-xs">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">🔍</span>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="SEARCH BY NAME, TYPE, OR GRID..."
+                className="w-full bg-[#090d16]/80 border border-white/10 text-white rounded-xl pl-10 pr-4 py-3.5 placeholder-gray-600 focus:outline-none focus:border-[#00ffcc] focus:shadow-[0_0_15px_rgba(0,255,204,0.1)] transition-all duration-300 uppercase tracking-wider"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
             <Link 
               href="/cars" 
-              className="text-xs font-mono font-bold uppercase tracking-widest text-[#00ffcc] hover:text-white border border-[#00ffcc]/20 hover:border-white px-5 py-2.5 rounded-xl bg-[#00ffcc]/5 transition-all duration-300"
+              className="w-full sm:w-auto text-center text-xs font-mono font-bold uppercase tracking-widest text-[#00ffcc] hover:text-black border border-[#00ffcc]/20 hover:border-[#00ffcc] hover:bg-[#00ffcc] px-5 py-3.5 rounded-xl bg-[#00ffcc]/5 transition-all duration-300 whitespace-nowrap"
             >
               See Full Grid →
             </Link>
@@ -59,7 +98,7 @@ export default function AvailableCars() {
 
         {/* 📦 DYNAMIC CARDS GRID */}
         {loading ? (
-          // ⏳ লোডিং স্টেট স্কেলেটন (কার্ড আসার আগ পর্যন্ত ৬টি ব্ল্যাঙ্ক কার্ড দেখাবে)
+          /* ⏳ Loading State Skeleton */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, idx) => (
               <div 
@@ -70,12 +109,21 @@ export default function AvailableCars() {
               </div>
             ))}
           </div>
-        ) : (
-          // 🏎️ রেন্ডারিং গ্রিড (এখানে ৩ কলামের গ্রিডে আপনার data.json এর সব কার শো করবে)
+        ) : filteredCars.length > 0 ? (
+          /* 🏎️ Rendering Screen */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cars.map((car, index) => (
+            {filteredCars.map((car, index) => (
               <CarCard key={car._id || index} car={car} />
             ))}
+          </div>
+        ) : (
+          /* ❌ Empty Search Result Screen */
+          <div className="border border-dashed border-white/10 rounded-2xl p-16 text-center max-w-xl mx-auto bg-[#090d16]/10 backdrop-blur-sm">
+            <span className="text-3xl block mb-3">📡</span>
+            <p className="font-mono text-xs text-rose-500 uppercase tracking-widest">NO ACTIVE NODES MATCHED</p>
+            <p className="text-[11px] text-gray-500 font-mono mt-1">
+              The request for "{searchQuery}" compiled 0 system returns. Try another parameter.
+            </p>
           </div>
         )}
 
@@ -83,6 +131,109 @@ export default function AvailableCars() {
     </section>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// import CarCard from '@/components/CarCard'; // পাথ ঠিক আছে কিনা তা নিশ্চিত করুন
+
+// export default function AvailableCars() {
+//   const [cars, setCars] = useState([]);
+//   const [loading, setLoading] = useState(true);
+
+//   useEffect(() => {
+//     // fetch('/data.json')
+//     fetch(process.env.NEXT_PUBLIC_ALL_CARS_API)
+//       .then((res) => res.json())
+//       .then((data) => {
+//         // 🚀 কোনো স্লাইস বা ফিল্টার ছাড়া সরাসরি সম্পূর্ণ ডাটা সেটে রাখা হলো
+//         setCars(data);
+//         setLoading(false);
+//       })
+//       .catch((err) => {
+//         console.error('Error loading data pipeline inside AvailableCars:', err);
+//         setLoading(false);
+//       });
+//   }, []);
+
+//   return (
+//     <section className="relative py-24 bg-[#030712] px-4 md:px-8 overflow-hidden w-full border-t border-white/5">
+      
+//       {/* 🔮 Background Futuristic Glow */}
+//       <div className="absolute top-1/4 right-[-10%] h-[500px] w-[500px] rounded-full bg-[#00ffcc]/5 blur-[150px] pointer-events-none" />
+
+//       <div className="max-w-7xl mx-auto relative z-10">
+        
+//         {/* 📑 SECTION HEADER */}
+//         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+//           <div className="space-y-2 text-center md:text-left">
+//             <div className="inline-block font-mono text-[10px] tracking-[0.2em] text-[#00ffcc] uppercase border-b border-[#00ffcc]/30 pb-1">
+//               Live Fleet Status
+//             </div>
+//             <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tight text-white">
+//               Available <span className="text-[#00ffcc] drop-shadow-[0_0_10px_rgba(0,255,204,0.3)]">Car Matrix</span>
+//             </h2>
+//             <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
+//               Verified nodes currently active on the grid network. Ready for immediate deployment and data synchronization.
+//             </p>
+//           </div>
+
+//           {/* See All Redirect Link */}
+//           <div className="flex justify-center">
+//             <Link 
+//               href="/cars" 
+//               className="text-xs font-mono font-bold uppercase tracking-widest text-[#00ffcc] hover:text-white border border-[#00ffcc]/20 hover:border-white px-5 py-2.5 rounded-xl bg-[#00ffcc]/5 transition-all duration-300"
+//             >
+//               See Full Grid →
+//             </Link>
+//           </div>
+//         </div>
+
+//         {/* 📦 DYNAMIC CARDS GRID */}
+//         {loading ? (
+//           // ⏳ লোডিং স্টেট স্কেলেটন (কার্ড আসার আগ পর্যন্ত ৬টি ব্ল্যাঙ্ক কার্ড দেখাবে)
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {[...Array(6)].map((_, idx) => (
+//               <div 
+//                 key={idx} 
+//                 className="h-96 w-full bg-[#090d16]/20 border border-white/5 rounded-2xl animate-pulse flex items-center justify-center text-[10px] font-mono text-gray-600 tracking-widest"
+//               >
+//                 SYNCING NODE DATA...
+//               </div>
+//             ))}
+//           </div>
+//         ) : (
+//           // 🏎️ রেন্ডারিং গ্রিড (এখানে ৩ কলামের গ্রিডে আপনার data.json এর সব কার শো করবে)
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {cars.map((car, index) => (
+//               <CarCard key={car._id || index} car={car} />
+//             ))}
+//           </div>
+//         )}
+
+//       </div>
+//     </section>
+//   );
+// }
 
 
 
