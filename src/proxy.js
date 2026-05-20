@@ -1,35 +1,5 @@
 
 
-// import { NextResponse } from 'next/server';
-// import { auth } from './lib/auth'; // 👈 'authClient' বদলে সার্ভারের 'auth' ইম্পোর্ট করুন
-
-// export async function proxy(request) {
-//     // 🚀 Better Auth-এর সার্ভার এপিআই ব্যবহার করে সেশন গেট করার সঠিক নিয়ম
-//     const session = await auth.api.getSession({
-//         headers: request.headers // 👈 আলাদা করে headers() ইম্পোর্ট না করে request থেকে সরাসরি নেওয়া সবচেয়ে সেফ
-//     });
-
-//     console.log("Current Server Session:", session);
-
-//     // উদাহরণ: ইউজার লগইন না থাকলে তাকে লগইন পেজে রিডাইরেক্ট করতে পারেন
-//     if (!session) {
-//         return NextResponse.redirect(new URL('/login', request.url));
-//     }
-    
-//     return NextResponse.redirect(new URL('/', request.url));
-// }
-
-// export const config = {
-//     matcher: '/cars/:id',
-// };
-
-
-
-
-
-
-
-
 
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server'
