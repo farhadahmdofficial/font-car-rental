@@ -27,80 +27,80 @@ export default function Register() {
 
 
 
-const handleChange = (e) => {
-  const { name, value } = e.target;
-  setFormData((prev) => ({ ...prev, [name]: value }));
-};
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-// 📝 Better Auth রেজিস্ট্রেশন হ্যান্ডলার
-const handleRegister = async (e) => {
-  e.preventDefault();
-  setError('');
-  setLoading(true);
+  // 📝 Better Auth রেজিস্ট্রেশন হ্যান্ডলার
+  const handleRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-  const { name, email, password } = formData;
+    const { name, email, password } = formData;
 
-  if (!name || !email || !password) {
-    toast.error("All fields are required to compile profile matrix."); // ইনলাইন এররের পাশাপাশি টোস্টও দিতে পারেন
-    setLoading(false);
-    return;
-  }
-
-  // 🚀 Better Auth Sign-Up Protocol
-  await authClient.signUp.email({
-    email: email,
-    password: password,
-    name: name,
-    image : formData.photoUrl || "" // যদি ফটো ইউআরএল না থাকে তবে খালি স্ট্রিং পাঠান
-  }, {
-    onRequest: () => {
-      setLoading(true);
-    },
-    // ✅ সাকসেসফুলি ইউজার ক্রিয়েট হলে
-    onSuccess: (ctx) => {
+    if (!name || !email || !password) {
+      toast.error("All fields are required to compile profile matrix."); // ইনলাইন এররের পাশাপাশি টোস্টও দিতে পারেন
       setLoading(false);
-      console.log('User registered successfully in MongoDB via Better Auth:', ctx);
-      
-      // 🌟 ২. সাকসেস টোস্ট মেসেজ
-      toast.success('Registration Successful! ', {
-        style: {
-          border: '1px solid #00ffcc',
-          padding: '16px',
-          color: '#fff',
-          background: '#090d16',
-          fontFamily: 'monospace',
-          fontSize: '12px'
-        },
-        iconTheme: {
-          primary: '#00ffcc',
-          secondary: '#090d16',
-        },
-      });
-
-      // সফল হলে হোম পেজ বা লগইন পেজে রিডাইরেক্ট
-      router.push('/');
-    },
-    // ❌ কোনো এরর হলে
-    onError: (ctx) => {
-      setLoading(false);
-      const errorMsg = ctx.error.message || 'Registration failed. Protocol breach.';
-      
-      // 🌟 ৩. এরর টোস্ট মেসেজ
-      toast.error(errorMsg, {
-        style: {
-          border: '1px solid #f43f5e',
-          padding: '16px',
-          color: '#fff',
-          background: '#090d16',
-          fontFamily: 'monospace',
-          fontSize: '12px'
-        },
-      });
-      
-      setError(errorMsg);
+      return;
     }
-  });
-};
+
+    // 🚀 Better Auth Sign-Up Protocol
+    await authClient.signUp.email({
+      email: email,
+      password: password,
+      name: name,
+      image: formData.photoUrl || "" // যদি ফটো ইউআরএল না থাকে তবে খালি স্ট্রিং পাঠান
+    }, {
+      onRequest: () => {
+        setLoading(true);
+      },
+      // ✅ সাকসেসফুলি ইউজার ক্রিয়েট হলে
+      onSuccess: (ctx) => {
+        setLoading(false);
+        console.log('User registered successfully in MongoDB via Better Auth:', ctx);
+
+        // 🌟 ২. সাকসেস টোস্ট মেসেজ
+        toast.success('Registration Successful! ', {
+          style: {
+            border: '1px solid #00ffcc',
+            padding: '16px',
+            color: '#fff',
+            background: '#090d16',
+            fontFamily: 'monospace',
+            fontSize: '12px'
+          },
+          iconTheme: {
+            primary: '#00ffcc',
+            secondary: '#090d16',
+          },
+        });
+
+        // সফল হলে হোম পেজ বা লগইন পেজে রিডাইরেক্ট
+        router.push('/');
+      },
+      // ❌ কোনো এরর হলে
+      onError: (ctx) => {
+        setLoading(false);
+        const errorMsg = ctx.error.message || 'Registration failed. Protocol breach.';
+
+        // 🌟 ৩. এরর টোস্ট মেসেজ
+        toast.error(errorMsg, {
+          style: {
+            border: '1px solid #f43f5e',
+            padding: '16px',
+            color: '#fff',
+            background: '#090d16',
+            fontFamily: 'monospace',
+            fontSize: '12px'
+          },
+        });
+
+        setError(errorMsg);
+      }
+    });
+  };
 
 
 
@@ -194,31 +194,58 @@ const handleRegister = async (e) => {
   // };
 
   // 🌐 ২. গুগল লগইন হ্যান্ডলার
+  // const handleGoogleLogin = async () => {
+  //   setError('');
+  //   try {
+  //     // 💡 এখানে পরবর্তীতে Firebase (signInWithPopup with GoogleAuthProvider) কানেক্ট করবেন
+  //     console.log('Initializing Google OAuth Loop...');
+
+  //     // সফল গুগল লগইন সিমুলেশন (Mocking Google Success)
+  //     setTimeout(() => {
+  //       // গুগল লগইন সফল হলে সরাসরি হোম পেজে রিডাইরেক্ট (As per requirement)
+  //       router.push('/');
+  //     }, 1000);
+
+  //   } catch (err) {
+  //     setError('Google Authentication aborted or network handshake failed.');
+  //   }
+  // };
+
+
+
+
+
   const handleGoogleLogin = async () => {
     setError('');
     try {
-      // 💡 এখানে পরবর্তীতে Firebase (signInWithPopup with GoogleAuthProvider) কানেক্ট করবেন
-      console.log('Initializing Google OAuth Loop...');
+      console.log('Initializing Better Auth Google OAuth Loop...');
 
-      // সফল গুগল লগইন সিমুলেশন (Mocking Google Success)
-      setTimeout(() => {
-        // গুগল লগইন সফল হলে সরাসরি হোম পেজে রিডাইরেক্ট (As per requirement)
-        router.push('/');
-      }, 1000);
+      // 🚀 Better Auth-এর রিয়েল সোশ্যাল সাইন-ইন প্রোটোকল
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/",         // সফলভাবে অ্যাকাউন্ট তৈরি বা লগইন হলে হোম পেজে নিয়ে যাবে
+        errorCallbackURL: "/signup", // কোনো এরর হলে সাইন-আপ পেজেই ব্যাক করাবে
+      });
 
     } catch (err) {
+      console.error("Google Auth Error:", err);
       setError('Google Authentication aborted or network handshake failed.');
+      toast.error('Google Authentication failed.');
     }
   };
 
+
+
+
+
   return (
     <div className="min-h-screen bg-[#030712] text-white px-4 py-12 flex items-center justify-center relative overflow-hidden">
-      
+
       {/* 🔮 Background Cyan Glow Grid */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[160px] pointer-events-none" />
 
       <div className="w-full max-w-md bg-[#090d16]/60 border border-white/5 rounded-2xl p-6 md:p-8 backdrop-blur-xl relative z-10 space-y-6 shadow-2xl">
-        
+
         {/* 📑 REGISTRATION TITLE */}
         <div className="text-center space-y-1.5">
           <div className="inline-block font-mono text-[9px] tracking-[0.2em] text-[#00ffcc] uppercase border-b border-[#00ffcc]/20 pb-0.5">
@@ -242,7 +269,7 @@ const handleRegister = async (e) => {
 
         {/* 📝 REGISTRATION FORM */}
         <form onSubmit={handleRegister} className="space-y-4">
-          
+
           {/* Field 1: Name */}
           <div className="space-y-1">
             <label className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Full Name</label>
@@ -325,10 +352,10 @@ const handleRegister = async (e) => {
         >
           {/* Minimalist Google SVG Icon */}
           <svg className="h-4 w-4" viewBox="0 0 24 24" width="24" height="24">
-            <path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.28 1.67l3.2-3.2C17.52 1.58 14.97 1 12 1 7.35 1 3.4 3.65 1.5 7.5l3.6 2.8C6.01 7.14 8.74 5.04 12 5.04z"/>
-            <path fill="#4285F4" d="M23.5 12.25c0-.82-.07-1.6-.2-2.35H12v4.45h6.45c-.28 1.48-1.12 2.73-2.38 3.58l3.68 2.85c2.14-1.98 3.75-4.9 3.75-8.53z"/>
-            <path fill="#FBBC05" d="M5.1 14.7c-.23-.7-.35-1.44-.35-2.2s.12-1.5.35-2.2L1.5 7.5C.54 9.4 0 11.63 0 14s.54 4.6 1.5 6.5l3.6-2.8z"/>
-            <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.92l-3.68-2.85c-1.02.68-2.33 1.1-4.28 1.1-3.26 0-5.99-2.1-6.98-5.26l-3.6 2.8C3.4 20.35 7.35 23 12 23z"/>
+            <path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.28 1.67l3.2-3.2C17.52 1.58 14.97 1 12 1 7.35 1 3.4 3.65 1.5 7.5l3.6 2.8C6.01 7.14 8.74 5.04 12 5.04z" />
+            <path fill="#4285F4" d="M23.5 12.25c0-.82-.07-1.6-.2-2.35H12v4.45h6.45c-.28 1.48-1.12 2.73-2.38 3.58l3.68 2.85c2.14-1.98 3.75-4.9 3.75-8.53z" />
+            <path fill="#FBBC05" d="M5.1 14.7c-.23-.7-.35-1.44-.35-2.2s.12-1.5.35-2.2L1.5 7.5C.54 9.4 0 11.63 0 14s.54 4.6 1.5 6.5l3.6-2.8z" />
+            <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.92l-3.68-2.85c-1.02.68-2.33 1.1-4.28 1.1-3.26 0-5.99-2.1-6.98-5.26l-3.6 2.8C3.4 20.35 7.35 23 12 23z" />
           </svg>
           <span>Continue with Google</span>
         </button>
