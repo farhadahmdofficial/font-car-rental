@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { authClient } from "@/lib/auth-client"; // আপনার auth-client ফাইলের সঠিক পাথ দিন
+import { toast } from 'react-hot-toast';
 
 export default function Login() {
   const router = useRouter();
@@ -14,52 +16,167 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
+
+
+const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔑 ১. রেগুলার ফর্ম লগইন হ্যান্ডলার
+  // 🔑 ১. Better Auth ইমেইল/পাসওয়ার্ড লগইন হ্যান্ডলার
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      // 💡 এখানে পরবর্তীতে Firebase (signInWithEmailAndPassword) বা কাস্টম API কানেক্ট করবেন
-      console.log('Authenticating Node Session:', formData);
+    const { email, password } = formData;
 
-      // সফল লগইন সিমুলেশন (Mocking Success Response)
-      setTimeout(() => {
-        setLoading(false);
-        // সফল লগইন হলে সরাসরি হোম রুটে রিডাইরেক্ট (As per requirement)
-        router.push('/');
-      }, 1500);
-
-    } catch (err) {
+    if (!email || !password) {
+      toast.error("Credentials grid incomplete. Check inputs.");
       setLoading(false);
-      // লগইন ফেইল হলে কাস্টম ইনলাইন মেসেজ সেট হবে
-      setError('Invalid credentials matrix. Secure access handshake refused.');
+      return;
     }
+
+    // 🚀 Better Auth Sign-In Protocol
+    await authClient.signIn.email({
+      email: email,
+      password: password,
+    }, {
+      onRequest: () => {
+        setLoading(true);
+      },
+      // ✅ সফলভাবে লগইন হলে
+      onSuccess: (ctx) => {
+        setLoading(false);
+        
+        // 🌟 সাকসেস টোস্ট মেসেজ
+        toast.success('LOGIN SUCCESSFUL!.', {
+          style: {
+            border: '1px solid #00ffcc',
+            padding: '16px',
+            color: '#fff',
+            background: '#090d16',
+            fontFamily: 'monospace',
+            fontSize: '12px'
+          },
+          iconTheme: {
+            primary: '#00ffcc',
+            secondary: '#090d16',
+          },
+        });
+
+        // সফল হলে হোম পেজে রিডাইরেক্ট
+        router.push('/');
+      },
+      // ❌ লগইন ফেইল হলে
+      onError: (ctx) => {
+        setLoading(false);
+        const errorMsg = ctx.error.message || 'Invalid credentials matrix.';
+        
+        // 🌟 এরর টোস্ট মেসেজ
+        toast.error(errorMsg, {
+          style: {
+            border: '1px solid #f43f5e',
+            padding: '16px',
+            color: '#fff',
+            background: '#090d16',
+            fontFamily: 'monospace',
+            fontSize: '12px'
+          },
+        });
+
+        setError(errorMsg);
+      }
+    });
   };
 
-  // 🌐 ২. গুগল লগইন হ্যান্ডলার
+  // 🌐 ২. Better Auth গুগল লগইন হ্যান্ডলার
   const handleGoogleLogin = async () => {
     setError('');
+    
     try {
-      // 💡 এখানে পরবর্তীতে Firebase Google Provider কানেক্ট করবেন
-      console.log('Initializing Google OAuth Loop...');
+      // 🚀 Better Auth Social Sign-In (Google OAuth)
+      await authClient.signIn.social({
+        provider: "google",
+        // নোট: Better Auth সফল লগইনের পর অটোমেটিক রিডাইরেক্ট করে, তাই callbackURL ব্যবহার করা হয়
+        callbackURL: "/" 
+      });
 
-      // সফল গুগল লগইন সিমুলেশন
-      setTimeout(() => {
-        // সফল গুগল লগইনে সরাসরি হোম রুটে রিডাইরেক্ট (As per requirement)
-        router.push('/');
-      }, 1000);
+      // ওঅথ লুপ শুরু হওয়ার জন্য একটি স্টার্টিং টোস্ট
+      toast.loading('Initializing Google OAuth Loop...', {
+        style: {
+          border: '1px solid #00ffcc',
+          padding: '12px',
+          color: '#fff',
+          background: '#090d16',
+          fontFamily: 'monospace',
+          fontSize: '12px'
+        }
+      });
 
     } catch (err) {
+      toast.error('Google Authentication aborted.');
       setError('Google Authentication aborted or token validation failed.');
     }
   };
+
+
+
+
+
+
+
+
+
+
+
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
+
+  // // 🔑 ১. রেগুলার ফর্ম লগইন হ্যান্ডলার
+  // const handleLogin = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   try {
+  //     // 💡 এখানে পরবর্তীতে Firebase (signInWithEmailAndPassword) বা কাস্টম API কানেক্ট করবেন
+  //     console.log('Authenticating Node Session:', formData);
+
+  //     // সফল লগইন সিমুলেশন (Mocking Success Response)
+  //     setTimeout(() => {
+  //       setLoading(false);
+  //       // সফল লগইন হলে সরাসরি হোম রুটে রিডাইরেক্ট (As per requirement)
+  //       router.push('/');
+  //     }, 1500);
+
+  //   } catch (err) {
+  //     setLoading(false);
+  //     // লগইন ফেইল হলে কাস্টম ইনলাইন মেসেজ সেট হবে
+  //     setError('Invalid credentials matrix. Secure access handshake refused.');
+  //   }
+  // };
+
+  // // 🌐 ২. গুগল লগইন হ্যান্ডলার
+  // const handleGoogleLogin = async () => {
+  //   setError('');
+  //   try {
+  //     // 💡 এখানে পরবর্তীতে Firebase Google Provider কানেক্ট করবেন
+  //     console.log('Initializing Google OAuth Loop...');
+
+  //     // সফল গুগল লগইন সিমুলেশন
+  //     setTimeout(() => {
+  //       // সফল গুগল লগইনে সরাসরি হোম রুটে রিডাইরেক্ট (As per requirement)
+  //       router.push('/');
+  //     }, 1000);
+
+  //   } catch (err) {
+  //     setError('Google Authentication aborted or token validation failed.');
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-[#030712] text-white px-4 py-12 flex items-center justify-center relative overflow-hidden">

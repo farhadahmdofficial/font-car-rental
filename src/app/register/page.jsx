@@ -7,6 +7,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
+import { toast } from 'react-hot-toast'; //
+// import { authClient } from "@/lib/auth-client"; // আপনার auth-client ফাইলের সঠিক পাথ দিন
 
 export default function Register() {
   const router = useRouter();
@@ -20,34 +23,175 @@ export default function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
-  // 📝 ১. রেগুলার ফর্ম রেজিস্ট্রেশন হ্যান্ডলার
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
 
-    try {
-      // 💡 এখানে পরবর্তীতে Firebase (createUserWithEmailAndPassword) বা আপনার কাস্টম API কানেক্ট করবেন
-      console.log('Registering Node Profile:', formData);
 
-      // সফল রেজিস্ট্রেশন সিমুলেশন (Mocking Success Response)
-      setTimeout(() => {
-        setLoading(false);
-        // সফল হলে লগইন পেজে রিডাইরেক্ট (As per requirement)
-        router.push('/login');
-      }, 1500);
 
-    } catch (err) {
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData((prev) => ({ ...prev, [name]: value }));
+};
+
+// 📝 Better Auth রেজিস্ট্রেশন হ্যান্ডলার
+const handleRegister = async (e) => {
+  e.preventDefault();
+  setError('');
+  setLoading(true);
+
+  const { name, email, password } = formData;
+
+  if (!name || !email || !password) {
+    toast.error("All fields are required to compile profile matrix."); // ইনলাইন এররের পাশাপাশি টোস্টও দিতে পারেন
+    setLoading(false);
+    return;
+  }
+
+  // 🚀 Better Auth Sign-Up Protocol
+  await authClient.signUp.email({
+    email: email,
+    password: password,
+    name: name,
+    image : formData.photoUrl || "" // যদি ফটো ইউআরএল না থাকে তবে খালি স্ট্রিং পাঠান
+  }, {
+    onRequest: () => {
+      setLoading(true);
+    },
+    // ✅ সাকসেসফুলি ইউজার ক্রিয়েট হলে
+    onSuccess: (ctx) => {
       setLoading(false);
-      // কোনো এরর হলে কাস্টম ইনলাইন মেসেজ/অ্যালার্ট সেট হবে
-      setError('Registration failed. Email matrix already exists or invalid protocol.');
+      console.log('User registered successfully in MongoDB via Better Auth:', ctx);
+      
+      // 🌟 ২. সাকসেস টোস্ট মেসেজ
+      toast.success('Registration Successful! ', {
+        style: {
+          border: '1px solid #00ffcc',
+          padding: '16px',
+          color: '#fff',
+          background: '#090d16',
+          fontFamily: 'monospace',
+          fontSize: '12px'
+        },
+        iconTheme: {
+          primary: '#00ffcc',
+          secondary: '#090d16',
+        },
+      });
+
+      // সফল হলে হোম পেজ বা লগইন পেজে রিডাইরেক্ট
+      router.push('/');
+    },
+    // ❌ কোনো এরর হলে
+    onError: (ctx) => {
+      setLoading(false);
+      const errorMsg = ctx.error.message || 'Registration failed. Protocol breach.';
+      
+      // 🌟 ৩. এরর টোস্ট মেসেজ
+      toast.error(errorMsg, {
+        style: {
+          border: '1px solid #f43f5e',
+          padding: '16px',
+          color: '#fff',
+          background: '#090d16',
+          fontFamily: 'monospace',
+          fontSize: '12px'
+        },
+      });
+      
+      setError(errorMsg);
     }
-  };
+  });
+};
+
+
+
+
+
+
+
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
+
+  // // 📝 Better Auth রেজিস্ট্রেশন হ্যান্ডলার
+  // const handleRegister = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   // Better Auth-এর জন্য formData থেকে নাম, ইমেইল, পাসওয়ার্ড আলাদা করা
+  //   const { name, email, password } = formData;
+
+  //   // প্রাথমিক ভ্যালিডেশন চেক
+  //   if (!name || !email || !password) {
+  //     setError("All fields are required to compile profile matrix.");
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   // 🚀 Better Auth Sign-Up Protocol
+  //   await authClient.signUp.email({
+  //     email: email,
+  //     password: password,
+  //     name: name,
+  //     // (ঐচ্ছিক) যদি ইমেজ ইউআরএল থাকে তবে এভাবে দিতে পারেন: image: formData.imageURL || ""
+  //   }, {
+  //     // 🔄 রিকোয়েস্ট শুরু হওয়ার সময় (onRequest)
+  //     onRequest: () => {
+  //       setLoading(true);
+  //     },
+  //     // ✅ সাকসেসফুলি ইউজার ক্রিয়েট হলে (onSuccess)
+  //     onSuccess: (ctx) => {
+  //       setLoading(false);
+  //       console.log('User registered successfully in MongoDB via Better Auth:', ctx);
+  //       // সফল হলে লগইন পেজে রিডাইরেক্ট
+  //       router.push('/');
+  //     },
+  //     // ❌ কোনো এরর হলে (onError)
+  //     onError: (ctx) => {
+  //       setLoading(false);
+  //       // Better Auth-এর নিজস্ব এরর মেসেজ দেখানোর জন্য ctx.error.message ব্যবহার করা হয়
+  //       setError(ctx.error.message || 'Registration failed. Protocol breach or email already exists.');
+  //     }
+  //   });
+  // };
+
+
+
+
+
+
+
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
+
+  // // 📝 ১. রেগুলার ফর্ম রেজিস্ট্রেশন হ্যান্ডলার
+  // const handleRegister = async (e) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   try {
+  //     // 💡 এখানে পরবর্তীতে Firebase (createUserWithEmailAndPassword) বা আপনার কাস্টম API কানেক্ট করবেন
+  //     console.log('Registering Node Profile:', formData);
+
+  //     // সফল রেজিস্ট্রেশন সিমুলেশন (Mocking Success Response)
+  //     setTimeout(() => {
+  //       setLoading(false);
+  //       // সফল হলে লগইন পেজে রিডাইরেক্ট (As per requirement)
+  //       router.push('/login');
+  //     }, 1500);
+
+  //   } catch (err) {
+  //     setLoading(false);
+  //     // কোনো এরর হলে কাস্টম ইনলাইন মেসেজ/অ্যালার্ট সেট হবে
+  //     setError('Registration failed. Email matrix already exists or invalid protocol.');
+  //   }
+  // };
 
   // 🌐 ২. গুগল লগইন হ্যান্ডলার
   const handleGoogleLogin = async () => {
