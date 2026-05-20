@@ -100,6 +100,15 @@ export default function Navbar() {
           >
             My Bookings
           </Link>
+
+          <Link
+            href="/my-add-cars"
+            className={`text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
+              isActive('/my-add-cars') ? 'text-[#00ffcc]' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            My Add Cars
+          </Link>
         </div>
 
         {/* 🔒 RIGHT SIDE: AUTH BUTTON / PROFILE DROPDOWN */}
@@ -208,6 +217,16 @@ export default function Navbar() {
             }`}
           >
             My Bookings
+          </Link>
+
+          <Link
+            href="/my-add-cars"
+            onClick={() => setIsOpen(false)}
+            className={`block rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-widest ${
+              isActive('/my-add-cars') ? 'bg-[#00ffcc]/10 text-[#00ffcc]' : 'text-gray-400 hover:bg-white/5'
+            }`}
+          >
+            My ADD cars
           </Link>
 
           {/* Mobile Auth Button State */}
