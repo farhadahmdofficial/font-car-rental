@@ -1,61 +1,152 @@
 
 
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { authClient } from '@/lib/auth-client';
+import { useEffect, useState, use } from 'react'; // 👈 'use' হুক ইম্পোর্ট করা হয়েছে
 import Link from 'next/link';
+import { toast } from 'react-hot-toast';
 
-export default function CarDetails({ params }) {
-  const [carId, setCarId] = useState(null);
+export default function CarDetails({ params: paramsPromise }) {
+  // 🔄 Next.js ডায়নামিক রাউট params নিরাপদে আনর্যাপ করার আধুনিক নিয়ম
+  const params = use(paramsPromise);
+  const carId = params?.id;
+
+  // 🎯 Better Auth হুক ক্লায়েন্ট সাইড সেশন ট্র্যাকিং
+  const { data: sessionData, isPending: isSessionLoading } = authClient.useSession();
+  const userSession = sessionData?.user; 
+
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); // মোডাল ওপেন/ক্লোজ স্টেট
-  const [isBooked, setIsBooked] = useState(false); // বুকিং সাকসেস স্টেট
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [isBooked, setIsBooked] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 🔄 Next.js ডায়নামিক রাউট params আনর্যাপ করা
-  useEffect(() => {
-    Promise.resolve(params).then((resolvedParams) => {
-      if (resolvedParams?.id) {
-        setCarId(resolvedParams.id);
-      } else {
-        setLoading(false);
+  // 📡 আইডি অনুযায়ী সরাসরি সিঙ্গেল কার ডাটা লোড করা
+  // useEffect(() => {
+  //   if (!carId) {
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   // API URL এর স্লাশ জেনুইন রাখতে template literal মডিফাই করা হয়েছে
+  //   const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
+  //     ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
+  //     : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
+
+  //   fetch(apiUrl)
+  //     .then((res) => {
+  //       if (!res.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       return res.json();
+  //     })
+  //     .then((data) => {
+  //       setCar(data);
+  //       setLoading(false);
+  //     })
+  //     .catch((err) => {
+  //       console.error('Matrix Pipeline Error:', err);
+  //       setLoading(false);
+  //     });
+  // }, [carId]);
+
+
+  // ফ্রন্টএন্ডের (Next.js) কার ডিটেইলস পেজের ফেচিং ব্লক
+useEffect(() => {
+  if (!carId) {
+    setLoading(false);
+    return;
+  }
+
+  setLoading(true);
+  const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
+    ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
+    : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
+
+  // সেশন থেকে টোকেন নেওয়া
+  const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
+
+  fetch(apiUrl, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      // 🔒 ব্যাকএন্ডের verifyToken-কে সন্তুষ্ট করার জন্য এই হেডারটি পাস করতে হবে
+      'Authorization': `Bearer ${sessionTokenOrId}`
+    }
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error('Network response was not ok');
       }
+      return res.json();
+    })
+    .then((data) => {
+      setCar(data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error('Matrix Pipeline Error:', err);
+      setLoading(false);
     });
-  }, [params]);
-
-  // 📡 আইডি অনুযায়ী public/data.json থেকে সুনির্দিষ্ট কার লোড করা
-  useEffect(() => {
-    if (!carId) return;
-
-    fetch(process.env.NEXT_PUBLIC_SINGLE_CARS_API + `/${carId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setCar(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error('Matrix Pipeline Error:', err);
-        setLoading(false);
-      });
-  }, [carId]);
+}, [carId, sessionData]); // 👈 ডিপেন্ডেন্সিতে sessionData যোগ করা হয়েছে
 
   // 🎯 বুকিং ফর্ম সাবমিশন ফাংশনালিটি
-  const handleBookingConfirm = (e) => {
+  const handleBookingConfirm = async (e) => {
     e.preventDefault();
-    setIsBooked(true); // সাকসেস স্ক্রিন দেখাবে
-    
-    // ২ সেকেন্ড পর মোডাল অটো বন্ধ করে স্টেট রিসেট করবে
-    setTimeout(() => {
-      setIsModalOpen(false);
-      setIsBooked(false);
-    }, 2000);
+
+    if (!userSession) {
+      toast.error('ACCESS_DENIED: Please log in first.');
+      return;
+    }
+
+    const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token; 
+
+    const bookingPayload = {
+      carId: car._id,
+      carName: car.carName,
+      dailyPrice: car.dailyPrice,
+      clientToken: sessionTokenOrId, 
+      userEmail: userSession.email,
+    };
+
+    try {
+      setIsSubmitting(true);
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionTokenOrId}` 
+        },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Server Verification Failed');
+      }
+
+      setIsBooked(true);
+      toast.success('DATA SENT & VERIFIED BY SERVER!');
+
+      setTimeout(() => {
+        setIsModalOpen(false);
+        setIsBooked(false);
+      }, 2000);
+
+    } catch (error) {
+      console.error('Transmission Error:', error);
+      toast.error(error.message || 'Failed to authenticate protocol.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-
-
-
-  if (loading) {
+  // লোডিং স্টেট হ্যান্ডলার
+  if (loading || isSessionLoading) {
     return (
       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
         LOADING CAR CONFIGURATION MATRIX...
@@ -63,6 +154,7 @@ export default function CarDetails({ params }) {
     );
   }
 
+  // ডাটা না পাওয়া গেলে ৪MD স্ক্রিন
   if (!car) {
     return (
       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
@@ -79,24 +171,22 @@ export default function CarDetails({ params }) {
 
   return (
     <main className="min-h-screen bg-[#030712] text-white py-20 px-4 md:px-8 relative overflow-hidden">
-      {/* 🔮 Background Futuristic Aesthetic Glow */}
       <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[180px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
         
-        {/* 🔙 BACK NAVIGATION */}
+        {/* BACK NAVIGATION */}
         <Link href="/" className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-[#00ffcc] transition-colors gap-2 group">
           <span className="transform group-hover:-translate-x-1 transition-transform">←</span> BACK TO FLEET GRID
         </Link>
 
-        {/* 🚙 TWO-COLUMN COMPREHENSIVE LAYOUT */}
+        {/* TWO-COLUMN LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           
-          {/* LEFT: IMAGE TERMINAL PANEL */}
+          {/* LEFT PANEL: IMAGE */}
           <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#090d16]/60 backdrop-blur-md p-2">
             <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden bg-[#030712]">
               <img src={car.image} alt={car.carName} className="w-full h-full object-cover select-none" />
-              {/* Dynamic Status Badge */}
               <span className={`absolute top-4 left-4 font-mono text-[10px] tracking-widest border px-3 py-1 rounded-md backdrop-blur-md ${
                 isAvailable ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
               }`}>
@@ -105,19 +195,17 @@ export default function CarDetails({ params }) {
             </div>
           </div>
 
-          {/* RIGHT: COMPONENT SPECIFICATION INFO */}
+          {/* RIGHT PANEL: INFO */}
           <div className="space-y-6">
             <div>
               <span className="font-mono text-xs text-[#00ffcc] uppercase tracking-widest">{car.carType} Category</span>
               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1">{car.carName}</h1>
             </div>
 
-            {/* 📝 DESCRIPTION PANEL */}
             <div className="border-l-2 border-[#00ffcc]/30 pl-4 py-1">
               <p className="text-sm text-gray-400 leading-relaxed font-sans">{car.description}</p>
             </div>
 
-            {/* 💰 COST RATE TERMINAL */}
             <div className="bg-[#090d16]/80 border border-white/5 rounded-xl p-4 flex items-center justify-between">
               <span className="text-xs font-mono text-gray-400 uppercase">Deployment Cost</span>
               <p className="text-2xl font-black text-[#00ffcc]">
@@ -125,13 +213,12 @@ export default function CarDetails({ params }) {
               </p>
             </div>
 
-            {/* 📊 ALL DETAILS INFO (GRID SYSTEM) */}
             <div className="space-y-3">
               <h3 className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Parameters</h3>
               <div className="grid grid-cols-2 gap-3 font-mono text-xs">
                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
                   <span className="text-gray-500 text-[10px] uppercase">Registry Node</span>
-                  <span className="text-white font-bold mt-1">🆔 {car._id}</span>
+                  <span className="text-white font-bold mt-1 overflow-hidden text-ellipsis">🆔 {car._id}</span>
                 </div>
                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
                   <span className="text-gray-500 text-[10px] uppercase">Terminal Hub</span>
@@ -148,13 +235,6 @@ export default function CarDetails({ params }) {
               </div>
             </div>
 
-            {/* 🛡️ SECURITY & DISPATCH CONDITIONS */}
-            <div className="space-y-2 text-[11px] text-gray-400 font-mono bg-[#090d16]/30 border border-white/5 p-3 rounded-xl">
-              <p className="flex items-center gap-2">⚡ <span className="text-gray-300">Instant tracking protocol active on dispatch.</span></p>
-              <p className="flex items-center gap-2">⚡ <span className="text-gray-300">Premium comprehensive grid protection coverage included.</span></p>
-            </div>
-
-            {/* 🛑 INTERACTIVE BOOK NOW BUTTON */}
             <button
               onClick={() => setIsModalOpen(true)}
               disabled={!isAvailable}
@@ -170,28 +250,25 @@ export default function CarDetails({ params }) {
         </div>
       </div>
 
-      {/* 🔮 MODAL SYSTEM BLOCK */}
+      {/* MODAL SYSTEM */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6">
             
-            {/* Modal Exit Custom Trigger */}
             <button 
               onClick={() => setIsModalOpen(false)} 
-              className="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm transition-colors"
+              className="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm"
             >
               ✕
             </button>
 
             {isBooked ? (
-              /* Success Deployment Matrix */
               <div className="text-center py-8 space-y-3">
                 <div className="text-4xl animate-bounce">⚡</div>
                 <h3 className="text-xl font-black uppercase text-[#00ffcc] tracking-wide">Node Allocated!</h3>
-                <p className="text-xs font-mono text-gray-400">Your lease protocol has been securely compiled into our system.</p>
+                <p className="text-xs font-mono text-gray-400">Your lease protocol has been securely compiled.</p>
               </div>
             ) : (
-              /* Form Inputs */
               <>
                 <div className="space-y-1 font-mono">
                   <span className="text-[10px] text-[#00ffcc] uppercase tracking-widest">Protocol Setup</span>
@@ -201,22 +278,37 @@ export default function CarDetails({ params }) {
 
                 <form onSubmit={handleBookingConfirm} className="space-y-4 font-mono text-xs">
                   <div className="space-y-1">
-                    <label className="text-gray-500 block">User Node Identifier (Full Name)</label>
-                    <input required type="text" placeholder="Farhad Ahmed" className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc] transition-colors" />
+                    <label className="text-gray-500 block">User Node Identifier</label>
+                    <input 
+                      required 
+                      disabled
+                      type="text" 
+                      defaultValue={userSession?.name || ""} 
+                      className="w-full bg-[#030712]/50 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none" 
+                    />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-gray-500 block">Communication Channel (Email)</label>
-                    <input required type="email" placeholder="farhad@example.com" className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc] transition-colors" />
+                    <label className="text-gray-500 block">Communication Channel</label>
+                    <input 
+                      required 
+                      disabled
+                      type="email" 
+                      defaultValue={userSession?.email || ""} 
+                      className="w-full bg-[#030712]/50 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none" 
+                    />
                   </div>
                   
-                  {/* Calculation Box */}
                   <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center">
                     <span className="text-gray-400">Rate Summary (Per Day):</span>
                     <span className="text-[#00ffcc] font-black text-sm">${car.dailyPrice} USD</span>
                   </div>
 
-                  <button type="submit" className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider transition-colors shadow-[0_0_15px_rgba(0,255,204,0.1)]">
-                    Confirm Secure Lease
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider shadow-[0_0_15px_rgba(0,255,204,0.1)] disabled:bg-gray-700 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'PROCESSING PROTOCOL...' : 'Confirm Secure Lease'}
                   </button>
                 </form>
               </>
@@ -227,6 +319,621 @@ export default function CarDetails({ params }) {
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+// // ✅ ক্লায়েন্ট সাইডের জন্য শুধু এটি থাকবে:
+// import { authClient } from '@/lib/auth-client';
+
+// import { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// // import { authClient } from '@/lib/auth-client'; 
+// import { toast } from 'react-hot-toast';
+// // import { auth } from '@/lib/auth';
+
+// export default function CarDetails({ params }) {
+//   // 🎯 ১. Better Auth হুক কম্পোনেন্টের টপ-লেভেলে নিয়ে আসা হলো
+//   const { data: sessionData, isPending: isSessionLoading } = authClient.useSession();
+//   const userSession = sessionData?.user; 
+
+//   const [carId, setCarId] = useState(null);
+//   const [car, setCar] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [isModalOpen, setIsModalOpen] = useState(false); 
+//   const [isBooked, setIsBooked] = useState(false); 
+
+//   // 🔄 Next.js ডায়নামিক রাউট params আনর্যাপ করা
+//   useEffect(() => {
+//     Promise.resolve(params).then((resolvedParams) => {
+//       if (resolvedParams?.id) {
+//         setCarId(resolvedParams.id);
+//       } else {
+//         setLoading(false);
+//       }
+//     });
+//   }, [params]);
+
+//   // 📡 আইডি অনুযায়ী সিঙ্গেল কার লোড করা
+//   useEffect(() => {
+//     if (!carId) return;
+
+//     fetch(`${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`)
+//       .then((res) => res.json())
+//       .then((data) => {
+//         setCar(data);
+//         setLoading(false);
+//       })
+//       .catch((err) => {
+//         console.error('Matrix Pipeline Error:', err);
+//         setLoading(false);
+//       });
+//   }, [carId]);
+
+
+
+//   const handleBookingConfirm = async (e) => {
+//   e.preventDefault();
+
+//   if (!userSession) {
+//     toast.error('ACCESS_DENIED: Please log in first.');
+//     return;
+//   }
+
+//   // 🆔 সেশন থেকে আইডি বা টোকেনটি বের করা
+//   const sessionTokenOrId = sessionData?.session?.id; 
+
+//   console.log("Sending Session ID to Server:", sessionTokenOrId);
+
+//   // 📦 পেলোড তৈরি (যার মধ্যে কার ডিটেইলস এবং সেশন আইডি থাকবে)
+//   const bookingPayload = {
+//     carId: car._id,
+//     carName: car.carName,
+//     dailyPrice: car.dailyPrice,
+//     clientToken: sessionTokenOrId, // 👈 এই যে সার্ভারে টোকেন/আইডি পাঠানো হচ্ছে
+//   };
+
+//   try {
+//     setIsSubmitting(true);
+
+//     // 🚀 ব্যাকএন্ড এপিআই-তে POST রিকোয়েস্ট
+//     const response = await fetch('/api/bookings', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify(bookingPayload), // অবজেক্টটিকে স্ট্রিংয়ে কনভার্ট করে পাঠানো হলো
+//     });
+
+//     const result = await response.json();
+
+//     if (!response.ok) {
+//       throw new Error(result.error || 'Server Verification Failed');
+//     }
+
+//     setIsBooked(true);
+//     toast.success('DATA SENT & VERIFIED BY SERVER!');
+
+//     setTimeout(() => {
+//       setIsModalOpen(false);
+//       setIsBooked(false);
+//     }, 2000);
+
+//   } catch (error) {
+//     console.error('Transmission Error:', error);
+//     toast.error(error.message);
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+
+
+
+// // 🎯 বুকিং ফর্ম সাবমিশন ফাংশনালিটি
+// // const handleBookingConfirm = async (e) => {
+// //   e.preventDefault();
+
+// //   // ❌ পুরানো 'auth.api.getToken' এবং 'headers()' এর কোড সম্পূর্ণ বাদ দিন
+  
+// //   // ✅ Better Auth ক্লায়েন্ট সেশন থেকে ডাটা এবং সেশন টোকেন/আইডি দেখুন
+// //   console.log("=== CLIENT SIDE SESSION INSPECTOR ===");
+// //   console.log("Full Session Data:", sessionData); 
+// //   console.log("Session ID/Token: in idpage", sessionData?.session?.token || sessionData?.session?.id);
+// //   console.log("User Info:", userSession);
+
+// //   // আপনার বাকি লজিক...
+// //   setIsBooked(true); 
+// //   toast.success('DECOY ALLOCATION COMPLETED!');
+  
+// //   setTimeout(() => {
+// //     setIsModalOpen(false);
+// //     setIsBooked(false);
+// //   }, 2000);
+// // };
+
+
+
+//   // 🎯 বুকিং ফর্ম সাবমিশন ফাংশনালিটি
+//   // const handleBookingConfirm = async (e) => {
+//   //   e.preventDefault();
+//   //     const token = await auth.api.getToken({
+//   //             headers: await headers()
+      
+//   //         });
+//   //         console.log(token);
+
+    
+//   //   setIsBooked(true); 
+    
+//   //   toast.success('DECOY ALLOCATION COMPLETED!');
+    
+//   //   setTimeout(() => {
+//   //     setIsModalOpen(false);
+//   //     setIsBooked(false);
+//   //   }, 2000);
+//   // };
+
+//   // কার ডাটা অথবা সেশন ডাটা যেকোনো একটি লোড হতে থাকলে স্ক্রিন হোল্ড করবে
+//   if (loading || isSessionLoading) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
+//         LOADING CAR CONFIGURATION MATRIX...
+//       </div>
+//     );
+//   }
+
+//   if (!car) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
+//         <p className="text-sm text-rose-500">❌ NODE_NOT_FOUND: 404</p>
+//         <p className="text-[10px] text-gray-500">Requested ID: {carId || 'Null'}</p>
+//         <Link href="/" className="text-xs text-[#00ffcc] underline tracking-wider mt-2">
+//           RETURN TO FLEET GRID
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   const isAvailable = car.availabilityStatus === 'Available';
+
+//   return (
+//     <main className="min-h-screen bg-[#030712] text-white py-20 px-4 md:px-8 relative overflow-hidden">
+//       <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[180px] pointer-events-none" />
+
+//       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
+        
+//         {/* BACK NAVIGATION */}
+//         <Link href="/" className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-[#00ffcc] transition-colors gap-2 group">
+//           <span className="transform group-hover:-translate-x-1 transition-transform">←</span> BACK TO FLEET GRID
+//         </Link>
+
+//         {/* TWO-COLUMN LAYOUT */}
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+//           {/* LEFT PANEL: IMAGE */}
+//           <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#090d16]/60 backdrop-blur-md p-2">
+//             <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden bg-[#030712]">
+//               <img src={car.image} alt={car.carName} className="w-full h-full object-cover select-none" />
+//               <span className={`absolute top-4 left-4 font-mono text-[10px] tracking-widest border px-3 py-1 rounded-md backdrop-blur-md ${
+//                 isAvailable ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+//               }`}>
+//                 {car.availabilityStatus}
+//               </span>
+//             </div>
+//           </div>
+
+//           {/* RIGHT PANEL: INFO */}
+//           <div className="space-y-6">
+//             <div>
+//               <span className="font-mono text-xs text-[#00ffcc] uppercase tracking-widest">{car.carType} Category</span>
+//               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1">{car.carName}</h1>
+//             </div>
+
+//             <div className="border-l-2 border-[#00ffcc]/30 pl-4 py-1">
+//               <p className="text-sm text-gray-400 leading-relaxed font-sans">{car.description}</p>
+//             </div>
+
+//             <div className="bg-[#090d16]/80 border border-white/5 rounded-xl p-4 flex items-center justify-between">
+//               <span className="text-xs font-mono text-gray-400 uppercase">Deployment Cost</span>
+//               <p className="text-2xl font-black text-[#00ffcc]">
+//                 ${car.dailyPrice}<span className="text-xs text-gray-500 font-mono font-normal"> / 24 HOUR LEASE</span>
+//               </p>
+//             </div>
+
+//             <div className="space-y-3">
+//               <h3 className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Parameters</h3>
+//               <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Registry Node</span>
+//                   <span className="text-white font-bold mt-1 overflow-hidden text-ellipsis">🆔 {car._id}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Terminal Hub</span>
+//                   <span className="text-white font-bold mt-1">📍 {car.pickupLocation}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Passenger Limit</span>
+//                   <span className="text-white font-bold mt-1">👥 {car.seatCapacity} Persons</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Encryption Status</span>
+//                   <span className="text-emerald-400 font-bold mt-1">🔒 Secured Terminal</span>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <button
+//               onClick={() => setIsModalOpen(true)}
+//               disabled={!isAvailable}
+//               className={`w-full font-black uppercase text-sm py-4 rounded-xl tracking-widest transition-all duration-300 ${
+//                 isAvailable
+//                   ? 'bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black shadow-[0_0_20px_rgba(0,255,204,0.2)] hover:shadow-[0_0_35px_rgba(0,255,204,0.4)]'
+//                   : 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+//               }`}
+//             >
+//               {isAvailable ? 'Initialize Deployment (Book Now)' : 'Node Locked / Unavailable'}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* MODAL SYSTEM */}
+//       {isModalOpen && (
+//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+//           <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6">
+            
+//             <button 
+//               onClick={() => setIsModalOpen(false)} 
+//               className="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm"
+//             >
+//               ✕
+//             </button>
+
+//             {isBooked ? (
+//               <div className="text-center py-8 space-y-3">
+//                 <div className="text-4xl animate-bounce">⚡</div>
+//                 <h3 className="text-xl font-black uppercase text-[#00ffcc] tracking-wide">Node Allocated!</h3>
+//                 <p className="text-xs font-mono text-gray-400">Your lease protocol has been securely compiled.</p>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="space-y-1 font-mono">
+//                   <span className="text-[10px] text-[#00ffcc] uppercase tracking-widest">Protocol Setup</span>
+//                   <h2 className="text-xl font-bold uppercase tracking-tight text-white">Confirm Node Lease</h2>
+//                   <p className="text-xs text-gray-400">Reviewing registry parameters for <span className="text-white font-bold">{car.carName}</span></p>
+//                 </div>
+
+//                 <form onSubmit={handleBookingConfirm} className="space-y-4 font-mono text-xs">
+//                   <div className="space-y-1">
+//                     <label className="text-gray-500 block">User Node Identifier</label>
+//                     <input 
+//                       required 
+//                       type="text" 
+//                       defaultValue={userSession?.name || ""} 
+//                       placeholder="Your Name" 
+//                       className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc]" 
+//                     />
+//                   </div>
+//                   <div className="space-y-1">
+//                     <label className="text-gray-500 block">Communication Channel</label>
+//                     <input 
+//                       required 
+//                       type="email" 
+//                       defaultValue={userSession?.email || ""} 
+//                       placeholder="your@email.com" 
+//                       className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc]" 
+//                     />
+//                   </div>
+                  
+//                   <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center">
+//                     <span className="text-gray-400">Rate Summary (Per Day):</span>
+//                     <span className="text-[#00ffcc] font-black text-sm">${car.dailyPrice} USD</span>
+//                   </div>
+
+//                   <button type="submit" className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider shadow-[0_0_15px_rgba(0,255,204,0.1)]">
+//                     Confirm Secure Lease
+//                   </button>
+//                 </form>
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       )}
+//     </main>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+
+// import { useEffect, useState } from 'react';
+// import Link from 'next/link';
+// import { auth } from '@/lib/auth';
+// // import { headers } from 'next/headers';
+
+// export default function CarDetails({ params }) {
+//   const [carId, setCarId] = useState(null);
+//   const [car, setCar] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [isModalOpen, setIsModalOpen] = useState(false); // মোডাল ওপেন/ক্লোজ স্টেট
+//   const [isBooked, setIsBooked] = useState(false); // বুকিং সাকসেস স্টেট
+
+//   // 🔄 Next.js ডায়নামিক রাউট params আনর্যাপ করা
+//   useEffect(() => {
+//     Promise.resolve(params).then(async (resolvedParams) => {
+
+
+      
+
+
+
+
+//       if (resolvedParams?.id) {
+//         setCarId(resolvedParams.id);
+//       } else {
+//         setLoading(false);
+//       }
+//     });
+//   }, [params]);
+
+//   // 📡 আইডি অনুযায়ী public/data.json থেকে সুনির্দিষ্ট কার লোড করা
+//   useEffect(() => {
+//     if (!carId) return;
+
+//     fetch(process.env.NEXT_PUBLIC_SINGLE_CARS_API + `/${carId}`)
+//       .then((res) => res.json())
+//       .then((data) => {
+//         setCar(data);
+//         setLoading(false);
+//       })
+//       .catch((err) => {
+//         console.error('Matrix Pipeline Error:', err);
+//         setLoading(false);
+//       });
+//   }, [carId]);
+
+//   // 🎯 বুকিং ফর্ম সাবমিশন ফাংশনালিটি
+//   const handleBookingConfirm = async (e) => {
+
+//   const token = await auth.api.getToken({
+//               headers: await headers()
+      
+//           });
+//           console.log(token);
+
+
+
+//     e.preventDefault();
+//     setIsBooked(true); // সাকসেস স্ক্রিন দেখাবে
+    
+//     // ২ সেকেন্ড পর মোডাল অটো বন্ধ করে স্টেট রিসেট করবে
+//     setTimeout(() => {
+//       setIsModalOpen(false);
+//       setIsBooked(false);
+//     }, 2000);
+//   };
+
+
+
+
+//   if (loading) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
+//         LOADING CAR CONFIGURATION MATRIX...
+//       </div>
+//     );
+//   }
+
+//   if (!car) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
+//         <p className="text-sm text-rose-500">❌ NODE_NOT_FOUND: 404</p>
+//         <p className="text-[10px] text-gray-500">Requested ID: {carId || 'Null'}</p>
+//         <Link href="/" className="text-xs text-[#00ffcc] underline tracking-wider mt-2">
+//           RETURN TO FLEET GRID
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   const isAvailable = car.availabilityStatus === 'Available';
+
+//   return (
+//     <main className="min-h-screen bg-[#030712] text-white py-20 px-4 md:px-8 relative overflow-hidden">
+//       {/* 🔮 Background Futuristic Aesthetic Glow */}
+//       <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[180px] pointer-events-none" />
+
+//       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
+        
+//         {/* 🔙 BACK NAVIGATION */}
+//         <Link href="/" className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-[#00ffcc] transition-colors gap-2 group">
+//           <span className="transform group-hover:-translate-x-1 transition-transform">←</span> BACK TO FLEET GRID
+//         </Link>
+
+//         {/* 🚙 TWO-COLUMN COMPREHENSIVE LAYOUT */}
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+//           {/* LEFT: IMAGE TERMINAL PANEL */}
+//           <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#090d16]/60 backdrop-blur-md p-2">
+//             <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden bg-[#030712]">
+//               <img src={car.image} alt={car.carName} className="w-full h-full object-cover select-none" />
+//               {/* Dynamic Status Badge */}
+//               <span className={`absolute top-4 left-4 font-mono text-[10px] tracking-widest border px-3 py-1 rounded-md backdrop-blur-md ${
+//                 isAvailable ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+//               }`}>
+//                 {car.availabilityStatus}
+//               </span>
+//             </div>
+//           </div>
+
+//           {/* RIGHT: COMPONENT SPECIFICATION INFO */}
+//           <div className="space-y-6">
+//             <div>
+//               <span className="font-mono text-xs text-[#00ffcc] uppercase tracking-widest">{car.carType} Category</span>
+//               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1">{car.carName}</h1>
+//             </div>
+
+//             {/* 📝 DESCRIPTION PANEL */}
+//             <div className="border-l-2 border-[#00ffcc]/30 pl-4 py-1">
+//               <p className="text-sm text-gray-400 leading-relaxed font-sans">{car.description}</p>
+//             </div>
+
+//             {/* 💰 COST RATE TERMINAL */}
+//             <div className="bg-[#090d16]/80 border border-white/5 rounded-xl p-4 flex items-center justify-between">
+//               <span className="text-xs font-mono text-gray-400 uppercase">Deployment Cost</span>
+//               <p className="text-2xl font-black text-[#00ffcc]">
+//                 ${car.dailyPrice}<span className="text-xs text-gray-500 font-mono font-normal"> / 24 HOUR LEASE</span>
+//               </p>
+//             </div>
+
+//             {/* 📊 ALL DETAILS INFO (GRID SYSTEM) */}
+//             <div className="space-y-3">
+//               <h3 className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Parameters</h3>
+//               <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Registry Node</span>
+//                   <span className="text-white font-bold mt-1">🆔 {car._id}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Terminal Hub</span>
+//                   <span className="text-white font-bold mt-1">📍 {car.pickupLocation}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Passenger Limit</span>
+//                   <span className="text-white font-bold mt-1">👥 {car.seatCapacity} Persons</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Encryption Status</span>
+//                   <span className="text-emerald-400 font-bold mt-1">🔒 Secured Terminal</span>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* 🛡️ SECURITY & DISPATCH CONDITIONS */}
+//             <div className="space-y-2 text-[11px] text-gray-400 font-mono bg-[#090d16]/30 border border-white/5 p-3 rounded-xl">
+//               <p className="flex items-center gap-2">⚡ <span className="text-gray-300">Instant tracking protocol active on dispatch.</span></p>
+//               <p className="flex items-center gap-2">⚡ <span className="text-gray-300">Premium comprehensive grid protection coverage included.</span></p>
+//             </div>
+
+//             {/* 🛑 INTERACTIVE BOOK NOW BUTTON */}
+//             <button
+//               onClick={() => setIsModalOpen(true)}
+//               disabled={!isAvailable}
+//               className={`w-full font-black uppercase text-sm py-4 rounded-xl tracking-widest transition-all duration-300 ${
+//                 isAvailable
+//                   ? 'bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black shadow-[0_0_20px_rgba(0,255,204,0.2)] hover:shadow-[0_0_35px_rgba(0,255,204,0.4)]'
+//                   : 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+//               }`}
+//             >
+//               {isAvailable ? 'Initialize Deployment (Book Now)' : 'Node Locked / Unavailable'}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* 🔮 MODAL SYSTEM BLOCK */}
+//       {isModalOpen && (
+//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+//           <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6 animate-in zoom-in-95 duration-200">
+            
+//             {/* Modal Exit Custom Trigger */}
+//             <button 
+//               onClick={() => setIsModalOpen(false)} 
+//               className="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm transition-colors"
+//             >
+//               ✕
+//             </button>
+
+//             {isBooked ? (
+//               /* Success Deployment Matrix */
+//               <div className="text-center py-8 space-y-3">
+//                 <div className="text-4xl animate-bounce">⚡</div>
+//                 <h3 className="text-xl font-black uppercase text-[#00ffcc] tracking-wide">Node Allocated!</h3>
+//                 <p className="text-xs font-mono text-gray-400">Your lease protocol has been securely compiled into our system.</p>
+//               </div>
+//             ) : (
+//               /* Form Inputs */
+//               <>
+//                 <div className="space-y-1 font-mono">
+//                   <span className="text-[10px] text-[#00ffcc] uppercase tracking-widest">Protocol Setup</span>
+//                   <h2 className="text-xl font-bold uppercase tracking-tight text-white">Confirm Node Lease</h2>
+//                   <p className="text-xs text-gray-400">Reviewing registry parameters for <span className="text-white font-bold">{car.carName}</span></p>
+//                 </div>
+
+//                 <form onSubmit={handleBookingConfirm} className="space-y-4 font-mono text-xs">
+//                   <div className="space-y-1">
+//                     <label className="text-gray-500 block">User Node Identifier (Full Name)</label>
+//                     <input required type="text" placeholder="Farhad Ahmed" className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc] transition-colors" />
+//                   </div>
+//                   <div className="space-y-1">
+//                     <label className="text-gray-500 block">Communication Channel (Email)</label>
+//                     <input required type="email" placeholder="farhad@example.com" className="w-full bg-[#030712] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00ffcc] transition-colors" />
+//                   </div>
+                  
+//                   {/* Calculation Box */}
+//                   <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center">
+//                     <span className="text-gray-400">Rate Summary (Per Day):</span>
+//                     <span className="text-[#00ffcc] font-black text-sm">${car.dailyPrice} USD</span>
+//                   </div>
+
+//                   <button type="submit" className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider transition-colors shadow-[0_0_15px_rgba(0,255,204,0.1)]">
+//                     Confirm Secure Lease
+//                   </button>
+//                 </form>
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       )}
+//     </main>
+//   );
+// }
 
 
 

@@ -11,7 +11,7 @@ export default function Home() {
       <Banner></Banner>
       <FutureSection></FutureSection>
 
-      <TipsSection></TipsSection>
+      {/* <TipsSection></TipsSection> */}
     </div>
   );
 }
