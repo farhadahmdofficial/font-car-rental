@@ -74,7 +74,7 @@ export default function AvailableCars() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="SEARCH BY NAME, TYPE, OR GRID..."
+                placeholder="SEARCH BY NAME"
                 className="w-full bg-[#090d16]/80 border border-white/10 text-white rounded-xl pl-10 pr-4 py-3.5 placeholder-gray-600 focus:outline-none focus:border-[#00ffcc] focus:shadow-[0_0_15px_rgba(0,255,204,0.1)] transition-all duration-300 uppercase tracking-wider"
               />
               {searchQuery && (

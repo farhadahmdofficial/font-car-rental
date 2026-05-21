@@ -29,7 +29,8 @@ export default function CarDetails({ params: paramsPromise }) {
     setLoading(true);
     
     // এনভায়রনমেন্ট ভ্যারিয়েবল ইউআরএল সেফটি চেক
-    const baseApi = process.env.NEXT_PUBLIC_SINGLE_CARS_API || 'http://localhost:8000/cars';
+    const baseApi =`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`;
+    // const baseApi = process.env.NEXT_PUBLIC_SINGLE_CARS_API || 'http://localhost:8000/cars';
     const apiUrl = baseApi.endsWith('/') ? `${baseApi}${carId}` : `${baseApi}/${carId}`;
 
     const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
@@ -83,7 +84,9 @@ export default function CarDetails({ params: paramsPromise }) {
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('http://localhost:8000/bookings', {
+      // const response = await fetch('http://localhost:8000/bookings', {
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/bookings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

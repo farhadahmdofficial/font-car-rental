@@ -42,7 +42,10 @@ export default function MyAddCars() {
         const userEmail = session?.user?.email;
         const token = session?.session?.token || session?.session?.id;
 
-        const response = await fetch(`http://localhost:8000/my-cars?email=${userEmail}`, {
+        // const response = await fetch(`http://localhost:8000/my-cars?email=${userEmail}`, {
+
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-cars?email=${userEmail}`, {
+
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +75,8 @@ export default function MyAddCars() {
     try {
       const token = session?.session?.token || session?.session?.id;
 
-      const response = await fetch(`http://localhost:8000/cars/${carId}`, { 
+    //   const response = await fetch(`http://localhost:8000/cars/${carId}`, { 
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${carId}`, { 
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}` 

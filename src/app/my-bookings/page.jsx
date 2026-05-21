@@ -29,7 +29,9 @@ export default function MyBookings() {
 
     const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
     
-    fetch(`http://localhost:8000/my-bookings?email=${userSession.email}`, {
+    // fetch(`http://localhost:8000/my-bookings?email=${userSession.email}`, {
+
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-bookings?email=${userSession.email}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -71,7 +73,8 @@ export default function MyBookings() {
     const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
 
     try {
-      const response = await fetch(`http://localhost:8000/bookings/${activeBookingId}`, {
+      // const response = await fetch(`http://localhost:8000/bookings/${activeBookingId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/bookings/${activeBookingId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
