@@ -22,7 +22,7 @@ export const metadata = {
   title: "DriveFleet | Premium Car Rental Service",
   description: "Affordable and premium car rental service for everyone.",
   icons: {
-    icon: "/vercel1.png", // 🎯 আপনার ফেভিকন ফাইলটির পাথ
+    icon: "/log.png", // 🎯 আপনার ফেভিকন ফাইলটির পাথ
   },
 };
 
