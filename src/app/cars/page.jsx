@@ -13,7 +13,7 @@ export default function AvailableCars() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(process.env.NEXT_PUBLIC_ALL_CARS_API)
+    fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`)
       .then((res) => res.json())
       .then((data) => {
         setCars(data);
