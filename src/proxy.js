@@ -31,6 +31,7 @@ export const config = {
         '/cars/:id',       //
         '/my-bookings',
         '/my-add-cars',
+        '/add-car',
         
     ],
 
