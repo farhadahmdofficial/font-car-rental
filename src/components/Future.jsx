@@ -15,16 +15,16 @@ export default function AvailableCars() {
     fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Fetched Data in Home:", data); // ব্রাউজার কনসোলে ডাটা চেক করার জন্য
+        console.log("Fetched Data in Home:", data); 
 
-        // 🔍 সেফ ফিল্টারিং লজিক (যাতে বড়-ছোট হাতের অক্ষরের কারণে ডাটা মিস না হয়)
+        
         const available = data.filter(car => {
-          // যদিavailability ফিল্ডটি থাকে, তবেই চেক করবে, না থাকলে সরাসরি ট্রু ধরে নিবে
+          
           if (!car.availability) return true; 
           return car.availability.toLowerCase() === 'available';
         });
 
-        // যদি ফিল্টার করার পর কোনো কার না পাওয়া যায়, তবে সেফটি হিসেবে মূল ডাটা থেকেই প্রথম ৪টি দেখাবে
+  
         const finalCars = available.length > 0 ? available : data;
         
         setCars(finalCars.slice(0, 4));
@@ -58,7 +58,7 @@ export default function AvailableCars() {
             </p>
           </div>
 
-          {/* See All Redirect Link */}
+          
           <div className="flex justify-center">
             <Link 
               href="/cars" 
@@ -69,7 +69,7 @@ export default function AvailableCars() {
           </div>
         </div>
 
-        {/* 📦 DYNAMIC CARDS GRID */}
+       
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, idx) => (

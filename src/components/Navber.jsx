@@ -14,13 +14,13 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Better Auth সেশন হুক
+ 
   const { data: session, isPending } = authClient.useSession();
   
   const isLoggedIn = !!session; 
   const user = session?.user;
 
-  // Better Auth লগআউট হ্যান্ডলার
+  // Better Auth 
   const handleLogout = async () => {
     try {
       await authClient.signOut({
@@ -49,7 +49,7 @@ export default function Navbar() {
 
   const isActive = (path) => pathname === path;
 
-  // ডিফল্ট প্রোফাইল অবতার
+ 
   const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
   return (

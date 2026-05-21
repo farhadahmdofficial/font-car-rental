@@ -28,11 +28,10 @@ export async function proxy(request) {
  
 export const config = {
     matcher: [
-        '/cars/:id',       // কার ডিটেইলস পেজ
-        '/add-car',        // 🚗 এড কার পেজ (আপনার প্রজেক্টের সঠিক পাথটি দিন)
+        '/cars/:id',       //
         '/my-bookings',
         '/my-add-cars',
-        // 📅 মাই বুকিং পেজ (আপনার প্রজেক্টের সঠিক পাথটি দিন)
+        
     ],
 
 
