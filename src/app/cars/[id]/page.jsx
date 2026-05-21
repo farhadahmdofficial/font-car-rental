@@ -3,14 +3,15 @@
 'use client';
 
 import { authClient } from '@/lib/auth-client';
-import { useEffect, useState, use } from 'react'; // 👈 'use' হুক ইম্পোর্ট করা হয়েছে
+import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; 
 import { toast } from 'react-hot-toast';
 
 export default function CarDetails({ params: paramsPromise }) {
-  // 🔄 Next.js ডায়নামিক রাউট params নিরাপদে আনর্যাপ করার আধুনিক নিয়ম
   const params = use(paramsPromise);
   const carId = params?.id;
+  const router = useRouter(); 
 
   // 🎯 Better Auth হুক ক্লায়েন্ট সাইড সেশন ট্র্যাকিং
   const { data: sessionData, isPending: isSessionLoading } = authClient.useSession();
@@ -18,103 +19,71 @@ export default function CarDetails({ params: paramsPromise }) {
 
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false); 
-  const [isBooked, setIsBooked] = useState(false); 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 📡 আইডি অনুযায়ী সরাসরি সিঙ্গেল কার ডাটা লোড করা
-  // useEffect(() => {
-  //   if (!carId) {
-  //     setLoading(false);
-  //     return;
-  //   }
+  // 📡 আইডি অনুযায়ী সরাসরি সিঙ্গেল কার ডাটা লোড করা
+  useEffect(() => {
+    // 🛑 সেফটি গার্ড: আইডি না থাকলে বা সেশন লোড হওয়া শেষ না হলে ফেচ আটকে দেওয়া হলো
+    if (!carId || isSessionLoading) return;
 
-  //   setLoading(true);
-  //   // API URL এর স্লাশ জেনুইন রাখতে template literal মডিফাই করা হয়েছে
-  //   const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
-  //     ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
-  //     : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
+    setLoading(true);
+    
+    // এনভায়রনমেন্ট ভ্যারিয়েবল ইউআরএল সেফটি চেক
+    const baseApi = process.env.NEXT_PUBLIC_SINGLE_CARS_API || 'http://localhost:8000/cars';
+    const apiUrl = baseApi.endsWith('/') ? `${baseApi}${carId}` : `${baseApi}/${carId}`;
 
-  //   fetch(apiUrl)
-  //     .then((res) => {
-  //       if (!res.ok) {
-  //         throw new Error('Network response was not ok');
-  //       }
-  //       return res.json();
-  //     })
-  //     .then((data) => {
-  //       setCar(data);
-  //       setLoading(false);
-  //     })
-  //     .catch((err) => {
-  //       console.error('Matrix Pipeline Error:', err);
-  //       setLoading(false);
-  //     });
-  // }, [carId]);
+    const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
 
-
-  // ফ্রন্টএন্ডের (Next.js) কার ডিটেইলস পেজের ফেচিং ব্লক
-useEffect(() => {
-  if (!carId) {
-    setLoading(false);
-    return;
-  }
-
-  setLoading(true);
-  const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
-    ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
-    : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
-
-  // সেশন থেকে টোকেন নেওয়া
-  const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
-
-  fetch(apiUrl, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      // 🔒 ব্যাকএন্ডের verifyToken-কে সন্তুষ্ট করার জন্য এই হেডারটি পাস করতে হবে
-      'Authorization': `Bearer ${sessionTokenOrId}`
-    }
-  })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error('Network response was not ok');
+    fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionTokenOrId}`
       }
-      return res.json();
     })
-    .then((data) => {
-      setCar(data);
-      setLoading(false);
-    })
-    .catch((err) => {
-      console.error('Matrix Pipeline Error:', err);
-      setLoading(false);
-    });
-}, [carId, sessionData]); // 👈 ডিপেন্ডেন্সিতে sessionData যোগ করা হয়েছে
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server Response Fail. Status: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setCar(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Matrix Pipeline Error:', err);
+        setLoading(false);
+      });
+  }, [carId, sessionData, isSessionLoading]); // 👈 isSessionLoading এখানে যুক্ত করা হলো
 
-  // 🎯 বুকিং ফর্ম সাবমিশন ফাংশনালিটি
-  const handleBookingConfirm = async (e) => {
-    e.preventDefault();
 
+
+  // 🎯 সরাসরি বুকিং করার মেইন হ্যান্ডলার
+  const handleDirectBooking = async () => {
+    // ১. ইউজার লগইন করা না থাকলে আটকে দেওয়া
     if (!userSession) {
       toast.error('ACCESS_DENIED: Please log in first.');
+      router.push('/login');
       return;
     }
 
     const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token; 
 
+    // ✅ সঠিক ফিক্স: ইমেজ প্রোপার্টি সহ একটিভ পে-লোড স্ট্রাকচার
     const bookingPayload = {
       carId: car._id,
       carName: car.carName,
-      dailyPrice: car.dailyPrice,
-      clientToken: sessionTokenOrId, 
+      dailyPrice: car.dailyPrice, 
       userEmail: userSession.email,
+      carImage: car.image || car.carImage || '', // 👈 এই ইমেজ ডাটাবেজে পাস হবে যাতে MyBookings পেজে শো করে
+      status: 'Confirmed' // ডিফল্ট স্ট্যাটাস এলোকেশন
     };
 
     try {
       setIsSubmitting(true);
 
-      const response = await fetch('/api/bookings', {
+      const response = await fetch('http://localhost:8000/bookings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -129,13 +98,21 @@ useEffect(() => {
         throw new Error(result.error || 'Server Verification Failed');
       }
 
-      setIsBooked(true);
-      toast.success('DATA SENT & VERIFIED BY SERVER!');
+      // 🎉 সাকসেস নোটিফিকেশন
+      toast.success('BOOKING SUCCESSFUL! NODE ALLOCATED.', {
+        style: {
+          border: '1px solid #00ffcc',
+          padding: '16px',
+          color: '#fff',
+          background: '#090d16',
+          fontFamily: 'monospace',
+        },
+      });
 
+      // ⏳ My Bookings পেজে রিডাইরেক্ট
       setTimeout(() => {
-        setIsModalOpen(false);
-        setIsBooked(false);
-      }, 2000);
+        router.push('/my-bookings'); 
+      }, 1500);
 
     } catch (error) {
       console.error('Transmission Error:', error);
@@ -154,7 +131,7 @@ useEffect(() => {
     );
   }
 
-  // ডাটা না পাওয়া গেলে ৪MD স্ক্রিন
+  // ডাটা না পাওয়া গেলে স্ক্রিন
   if (!car) {
     return (
       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
@@ -235,90 +212,653 @@ useEffect(() => {
               </div>
             </div>
 
+            {/* ACTION BUTTON */}
             <button
-              onClick={() => setIsModalOpen(true)}
-              disabled={!isAvailable}
+              onClick={handleDirectBooking}
+              disabled={!isAvailable || isSubmitting}
               className={`w-full font-black uppercase text-sm py-4 rounded-xl tracking-widest transition-all duration-300 ${
-                isAvailable
-                  ? 'bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black shadow-[0_0_20px_rgba(0,255,204,0.2)] hover:shadow-[0_0_35px_rgba(0,255,204,0.4)]'
+                isAvailable && !isSubmitting
+                  ? 'bg-[#00ffcc] text-black shadow-[0_0_20px_rgba(0,255,204,0.2)] hover:shadow-[0_0_35px_rgba(0,255,204,0.4)] hover:bg-[#00ffcc]/90'
                   : 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
               }`}
             >
-              {isAvailable ? 'Initialize Deployment (Book Now)' : 'Node Locked / Unavailable'}
+              {isSubmitting 
+                ? 'PROCESSING LEASE PROTOCOL...' 
+                : isAvailable 
+                  ? 'Initialize Deployment (Book Now)' 
+                  : 'Node Locked / Unavailable'
+              }
             </button>
           </div>
         </div>
       </div>
-
-      {/* MODAL SYSTEM */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6">
-            
-            <button 
-              onClick={() => setIsModalOpen(false)} 
-              className="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm"
-            >
-              ✕
-            </button>
-
-            {isBooked ? (
-              <div className="text-center py-8 space-y-3">
-                <div className="text-4xl animate-bounce">⚡</div>
-                <h3 className="text-xl font-black uppercase text-[#00ffcc] tracking-wide">Node Allocated!</h3>
-                <p className="text-xs font-mono text-gray-400">Your lease protocol has been securely compiled.</p>
-              </div>
-            ) : (
-              <>
-                <div className="space-y-1 font-mono">
-                  <span className="text-[10px] text-[#00ffcc] uppercase tracking-widest">Protocol Setup</span>
-                  <h2 className="text-xl font-bold uppercase tracking-tight text-white">Confirm Node Lease</h2>
-                  <p className="text-xs text-gray-400">Reviewing registry parameters for <span className="text-white font-bold">{car.carName}</span></p>
-                </div>
-
-                <form onSubmit={handleBookingConfirm} className="space-y-4 font-mono text-xs">
-                  <div className="space-y-1">
-                    <label className="text-gray-500 block">User Node Identifier</label>
-                    <input 
-                      required 
-                      disabled
-                      type="text" 
-                      defaultValue={userSession?.name || ""} 
-                      className="w-full bg-[#030712]/50 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none" 
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-gray-500 block">Communication Channel</label>
-                    <input 
-                      required 
-                      disabled
-                      type="email" 
-                      defaultValue={userSession?.email || ""} 
-                      className="w-full bg-[#030712]/50 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none" 
-                    />
-                  </div>
-                  
-                  <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center">
-                    <span className="text-gray-400">Rate Summary (Per Day):</span>
-                    <span className="text-[#00ffcc] font-black text-sm">${car.dailyPrice} USD</span>
-                  </div>
-
-                  <button 
-                    type="submit" 
-                    disabled={isSubmitting}
-                    className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider shadow-[0_0_15px_rgba(0,255,204,0.1)] disabled:bg-gray-700 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'PROCESSING PROTOCOL...' : 'Confirm Secure Lease'}
-                  </button>
-                </form>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </main>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// without imge code 
+
+
+
+// 'use client';
+
+// import { authClient } from '@/lib/auth-client';
+// import { useEffect, useState, use } from 'react';
+// import Link from 'next/link';
+// import { useRouter } from 'next/navigation'; // 👈 রিডাইরেক্ট করার জন্য useRouter ইম্পোর্ট করা হয়েছে
+// import { toast } from 'react-hot-toast';
+
+// export default function CarDetails({ params: paramsPromise }) {
+//   const params = use(paramsPromise);
+//   const carId = params?.id;
+//   const router = useRouter(); // 👈 রাউটার ইনিশিয়ালাইজ করা হলো
+
+//   // 🎯 Better Auth হুক ক্লায়েন্ট সাইড সেশন ট্র্যাকিং
+//   const { data: sessionData, isPending: isSessionLoading } = authClient.useSession();
+//   const userSession = sessionData?.user; 
+
+//   const [car, setCar] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+
+//   // 📡 আইডি অনুযায়ী সরাসরি সিঙ্গেল কার ডাটা লোড করা
+//   useEffect(() => {
+//     if (!carId) {
+//       setLoading(false);
+//       return;
+//     }
+
+//     setLoading(true);
+//     const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
+//       ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
+//       : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
+
+//     const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
+
+//     fetch(apiUrl, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${sessionTokenOrId}`
+//       }
+//     })
+//       .then((res) => {
+//         if (!res.ok) throw new Error('Network response was not ok');
+//         return res.json();
+//       })
+//       .then((data) => {
+//         setCar(data);
+//         setLoading(false);
+//       })
+//       .catch((err) => {
+//         console.error('Matrix Pipeline Error:', err);
+//         setLoading(false);
+//       });
+//   }, [carId, sessionData]);
+
+
+
+
+//   // 🎯 সরাসরি বুকিং করার মেইন হ্যান্ডলার (মোডাল ছাড়া)
+// const handleDirectBooking = async () => {
+//   // ১. ইউজার লগইন করা না থাকলে আটকে দেওয়া
+//   if (!userSession) {
+//     toast.error('ACCESS_DENIED: Please log in first.');
+//     router.push('/login');
+//     return;
+//   }
+
+//   const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token; 
+
+
+
+
+//   const bookingPayload = {
+//     carId: car._id,
+//     carName: car.carName,
+//     dailyPrice: car.dailyPrice, 
+//     userEmail: userSession.email, // ব্যাকএন্ড এই ইমেইল দিয়ে কুয়েরি করবে
+//   };
+
+//   try {
+//     setIsSubmitting(true);
+
+//     // 🛑 ভুল ছিল: fetch('/api/bookings') 
+//     // ✅ সঠিক ফিক্স: আপনার এক্সপ্রেস ব্যাকএন্ডের ফুল ইউআরএল ব্যবহার করুন
+//     const response = await fetch('http://localhost:8000/bookings', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         'Authorization': `Bearer ${sessionTokenOrId}` // টোকেন পাস করা হলো
+//       },
+//       body: JSON.stringify(bookingPayload),
+//     });
+
+//     const result = await response.json();
+
+//     if (!response.ok) {
+//       throw new Error(result.error || 'Server Verification Failed');
+//     }
+
+//     // 🎉 ৩. সাকসেস নোটিফিকেশন
+//     toast.success('BOOKING SUCCESSFUL! NODE ALLOCATED.', {
+//       style: {
+//         border: '1px solid #00ffcc',
+//         padding: '16px',
+//         color: '#fff',
+//         background: '#090d16',
+//         fontFamily: 'monospace',
+//       },
+//     });
+
+//     // ⏳ ৪. ১.৫ সেকেন্ড পর "My Bookings" পেজে রিডাইরেক্ট করা
+//     setTimeout(() => {
+//       router.push('/my-bookings'); 
+//     }, 1500);
+
+//   } catch (error) {
+//     console.error('Transmission Error:', error);
+//     toast.error(error.message || 'Failed to authenticate protocol.');
+//   } finally {
+//     setIsSubmitting(false);
+//   }
+// };
+
+
+
+//   // লোডিং স্টেট হ্যান্ডলার
+//   if (loading || isSessionLoading) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
+//         LOADING CAR CONFIGURATION MATRIX...
+//       </div>
+//     );
+//   }
+
+//   // ডাটা না পাওয়া গেলে ৪MD স্ক্রিন
+//   if (!car) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
+//         <p className="text-sm text-rose-500">❌ NODE_NOT_FOUND: 404</p>
+//         <p className="text-[10px] text-gray-500">Requested ID: {carId || 'Null'}</p>
+//         <Link href="/" className="text-xs text-[#00ffcc] underline tracking-wider mt-2">
+//           RETURN TO FLEET GRID
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   const isAvailable = car.availabilityStatus === 'Available';
+
+//   return (
+//     <main className="min-h-screen bg-[#030712] text-white py-20 px-4 md:px-8 relative overflow-hidden">
+//       <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[180px] pointer-events-none" />
+
+//       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
+        
+//         {/* BACK NAVIGATION */}
+//         <Link href="/" className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-[#00ffcc] transition-colors gap-2 group">
+//           <span className="transform group-hover:-translate-x-1 transition-transform">←</span> BACK TO FLEET GRID
+//         </Link>
+
+//         {/* TWO-COLUMN LAYOUT */}
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+//           {/* LEFT PANEL: IMAGE */}
+//           <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#090d16]/60 backdrop-blur-md p-2">
+//             <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden bg-[#030712]">
+//               <img src={car.image} alt={car.carName} className="w-full h-full object-cover select-none" />
+//               <span className={`absolute top-4 left-4 font-mono text-[10px] tracking-widest border px-3 py-1 rounded-md backdrop-blur-md ${
+//                 isAvailable ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+//               }`}>
+//                 {car.availabilityStatus}
+//               </span>
+//             </div>
+//           </div>
+
+//           {/* RIGHT PANEL: INFO */}
+//           <div className="space-y-6">
+//             <div>
+//               <span className="font-mono text-xs text-[#00ffcc] uppercase tracking-widest">{car.carType} Category</span>
+//               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1">{car.carName}</h1>
+//             </div>
+
+//             <div className="border-l-2 border-[#00ffcc]/30 pl-4 py-1">
+//               <p className="text-sm text-gray-400 leading-relaxed font-sans">{car.description}</p>
+//             </div>
+
+//             <div className="bg-[#090d16]/80 border border-white/5 rounded-xl p-4 flex items-center justify-between">
+//               <span className="text-xs font-mono text-gray-400 uppercase">Deployment Cost</span>
+//               <p className="text-2xl font-black text-[#00ffcc]">
+//                 ${car.dailyPrice}<span className="text-xs text-gray-500 font-mono font-normal"> / 24 HOUR LEASE</span>
+//               </p>
+//             </div>
+
+//             <div className="space-y-3">
+//               <h3 className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Parameters</h3>
+//               <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Registry Node</span>
+//                   <span className="text-white font-bold mt-1 overflow-hidden text-ellipsis">🆔 {car._id}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Terminal Hub</span>
+//                   <span className="text-white font-bold mt-1">📍 {car.pickupLocation}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Passenger Limit</span>
+//                   <span className="text-white font-bold mt-1">👥 {car.seatCapacity} Persons</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Encryption Status</span>
+//                   <span className="text-emerald-400 font-bold mt-1">🔒 Secured Terminal</span>
+//                 </div>
+//               </div>
+//             </div>
+
+//             {/* 🎯 এই বাটনে ক্লিক করলেই সরাসরি বুকিং ট্রিগার হবে */}
+//             <button
+//               onClick={handleDirectBooking}
+//               disabled={!isAvailable || isSubmitting}
+//               className={`w-full font-black uppercase text-sm py-4 rounded-xl tracking-widest transition-all duration-300 ${
+//                 isAvailable && !isSubmitting
+//                   ? 'bg-[#00ffcc] text-black shadow-[0_0_20px_rgba(0,255,204,0.2)] hover:shadow-[0_0_35px_rgba(0,255,204,0.4)] hover:bg-[#00ffcc]/90'
+//                   : 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+//               }`}
+//             >
+//               {isSubmitting 
+//                 ? 'PROCESSING LEASE PROTOCOL...' 
+//                 : isAvailable 
+//                   ? 'Initialize Deployment (Book Now)' 
+//                   : 'Node Locked / Unavailable'
+//               }
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </main>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 'use client';
+
+// import { authClient } from '@/lib/auth-client';
+// import { useEffect, useState, use } from 'react'; // 👈 'use' হুক ইম্পোর্ট করা হয়েছে
+// import Link from 'next/link';
+// import { toast } from 'react-hot-toast';
+
+// export default function CarDetails({ params: paramsPromise }) {
+//   // 🔄 Next.js ডায়নামিক রাউট params নিরাপদে আনর্যাপ করার আধুনিক নিয়ম
+//   const params = use(paramsPromise);
+//   const carId = params?.id;
+
+//   // 🎯 Better Auth হুক ক্লায়েন্ট সাইড সেশন ট্র্যাকিং
+//   const { data: sessionData, isPending: isSessionLoading } = authClient.useSession();
+//   const userSession = sessionData?.user; 
+
+//   const [car, setCar] = useState(null);
+//   const [loading, setLoading] = useState(true);
+//   const [isModalOpen, setIsModalOpen] = useState(false); 
+//   const [isBooked, setIsBooked] = useState(false); 
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+
+//   // 📡 আইডি অনুযায়ী সরাসরি সিঙ্গেল কার ডাটা লোড করা
+//   // useEffect(() => {
+//   //   if (!carId) {
+//   //     setLoading(false);
+//   //     return;
+//   //   }
+
+//   //   setLoading(true);
+//   //   // API URL এর স্লাশ জেনুইন রাখতে template literal মডিফাই করা হয়েছে
+//   //   const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
+//   //     ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
+//   //     : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
+
+//   //   fetch(apiUrl)
+//   //     .then((res) => {
+//   //       if (!res.ok) {
+//   //         throw new Error('Network response was not ok');
+//   //       }
+//   //       return res.json();
+//   //     })
+//   //     .then((data) => {
+//   //       setCar(data);
+//   //       setLoading(false);
+//   //     })
+//   //     .catch((err) => {
+//   //       console.error('Matrix Pipeline Error:', err);
+//   //       setLoading(false);
+//   //     });
+//   // }, [carId]);
+
+
+//   // ফ্রন্টএন্ডের (Next.js) কার ডিটেইলস পেজের ফেচিং ব্লক
+// useEffect(() => {
+//   if (!carId) {
+//     setLoading(false);
+//     return;
+//   }
+
+//   setLoading(true);
+//   const apiUrl = `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}`.endsWith('/') 
+//     ? `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}${carId}` 
+//     : `${process.env.NEXT_PUBLIC_SINGLE_CARS_API}/${carId}`;
+
+//   // সেশন থেকে টোকেন নেওয়া
+//   const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token;
+
+//   fetch(apiUrl, {
+//     method: 'GET',
+//     headers: {
+//       'Content-Type': 'application/json',
+//       // 🔒 ব্যাকএন্ডের verifyToken-কে সন্তুষ্ট করার জন্য এই হেডারটি পাস করতে হবে
+//       'Authorization': `Bearer ${sessionTokenOrId}`
+//     }
+//   })
+//     .then((res) => {
+//       if (!res.ok) {
+//         throw new Error('Network response was not ok');
+//       }
+//       return res.json();
+//     })
+//     .then((data) => {
+//       setCar(data);
+//       setLoading(false);
+//     })
+//     .catch((err) => {
+//       console.error('Matrix Pipeline Error:', err);
+//       setLoading(false);
+//     });
+// }, [carId, sessionData]); // 👈 ডিপেন্ডেন্সিতে sessionData যোগ করা হয়েছে
+
+//   // 🎯 বুকিং ফর্ম সাবমিশন ফাংশনালিটি
+//   const handleBookingConfirm = async (e) => {
+//     e.preventDefault();
+
+//     if (!userSession) {
+//       toast.error('ACCESS_DENIED: Please log in first.');
+//       return;
+//     }
+
+//     const sessionTokenOrId = sessionData?.session?.id || sessionData?.session?.token; 
+
+//     const bookingPayload = {
+//       carId: car._id,
+//       carName: car.carName,
+//       dailyPrice: car.dailyPrice,
+//       clientToken: sessionTokenOrId, 
+//       userEmail: userSession.email,
+//     };
+
+//     try {
+//       setIsSubmitting(true);
+
+//       const response = await fetch('/api/bookings', {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'Authorization': `Bearer ${sessionTokenOrId}` 
+//         },
+//         body: JSON.stringify(bookingPayload),
+//       });
+
+//       const result = await response.json();
+
+//       if (!response.ok) {
+//         throw new Error(result.error || 'Server Verification Failed');
+//       }
+
+//       setIsBooked(true);
+//       toast.success('DATA SENT & VERIFIED BY SERVER!');
+
+//       setTimeout(() => {
+//         setIsModalOpen(false);
+//         setIsBooked(false);
+//       }, 2000);
+
+//     } catch (error) {
+//       console.error('Transmission Error:', error);
+//       toast.error(error.message || 'Failed to authenticate protocol.');
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   // লোডিং স্টেট হ্যান্ডলার
+//   if (loading || isSessionLoading) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex items-center justify-center font-mono text-xs text-[#00ffcc] tracking-widest">
+//         LOADING CAR CONFIGURATION MATRIX...
+//       </div>
+//     );
+//   }
+
+//   // ডাটা না পাওয়া গেলে ৪MD স্ক্রিন
+//   if (!car) {
+//     return (
+//       <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-white space-y-4 font-mono">
+//         <p className="text-sm text-rose-500">❌ NODE_NOT_FOUND: 404</p>
+//         <p className="text-[10px] text-gray-500">Requested ID: {carId || 'Null'}</p>
+//         <Link href="/" className="text-xs text-[#00ffcc] underline tracking-wider mt-2">
+//           RETURN TO FLEET GRID
+//         </Link>
+//       </div>
+//     );
+//   }
+
+//   const isAvailable = car.availabilityStatus === 'Available';
+
+//   return (
+//     <main className="min-h-screen bg-[#030712] text-white py-20 px-4 md:px-8 relative overflow-hidden">
+//       <div className="absolute top-0 left-1/4 h-[600px] w-[600px] rounded-full bg-[#00ffcc]/5 blur-[180px] pointer-events-none" />
+
+//       <div className="max-w-6xl mx-auto relative z-10 space-y-12">
+        
+//         {/* BACK NAVIGATION */}
+//         <Link href="/" className="inline-flex items-center text-xs font-mono text-gray-400 hover:text-[#00ffcc] transition-colors gap-2 group">
+//           <span className="transform group-hover:-translate-x-1 transition-transform">←</span> BACK TO FLEET GRID
+//         </Link>
+
+//         {/* TWO-COLUMN LAYOUT */}
+//         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+          
+//           {/* LEFT PANEL: IMAGE */}
+//           <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-[#090d16]/60 backdrop-blur-md p-2">
+//             <div className="relative h-64 sm:h-96 w-full rounded-xl overflow-hidden bg-[#030712]">
+//               <img src={car.image} alt={car.carName} className="w-full h-full object-cover select-none" />
+//               <span className={`absolute top-4 left-4 font-mono text-[10px] tracking-widest border px-3 py-1 rounded-md backdrop-blur-md ${
+//                 isAvailable ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
+//               }`}>
+//                 {car.availabilityStatus}
+//               </span>
+//             </div>
+//           </div>
+
+//           {/* RIGHT PANEL: INFO */}
+//           <div className="space-y-6">
+//             <div>
+//               <span className="font-mono text-xs text-[#00ffcc] uppercase tracking-widest">{car.carType} Category</span>
+//               <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tight mt-1">{car.carName}</h1>
+//             </div>
+
+//             <div className="border-l-2 border-[#00ffcc]/30 pl-4 py-1">
+//               <p className="text-sm text-gray-400 leading-relaxed font-sans">{car.description}</p>
+//             </div>
+
+//             <div className="bg-[#090d16]/80 border border-white/5 rounded-xl p-4 flex items-center justify-between">
+//               <span className="text-xs font-mono text-gray-400 uppercase">Deployment Cost</span>
+//               <p className="text-2xl font-black text-[#00ffcc]">
+//                 ${car.dailyPrice}<span className="text-xs text-gray-500 font-mono font-normal"> / 24 HOUR LEASE</span>
+//               </p>
+//             </div>
+
+//             <div className="space-y-3">
+//               <h3 className="text-xs font-mono text-gray-400 uppercase tracking-wider">System Parameters</h3>
+//               <div className="grid grid-cols-2 gap-3 font-mono text-xs">
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Registry Node</span>
+//                   <span className="text-white font-bold mt-1 overflow-hidden text-ellipsis">🆔 {car._id}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Terminal Hub</span>
+//                   <span className="text-white font-bold mt-1">📍 {car.pickupLocation}</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Passenger Limit</span>
+//                   <span className="text-white font-bold mt-1">👥 {car.seatCapacity} Persons</span>
+//                 </div>
+//                 <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex flex-col">
+//                   <span className="text-gray-500 text-[10px] uppercase">Encryption Status</span>
+//                   <span className="text-emerald-400 font-bold mt-1">🔒 Secured Terminal</span>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <button
+//               onClick={() => setIsModalOpen(true)}
+//               disabled={!isAvailable}
+//               className={`w-full font-black uppercase text-sm py-4 rounded-xl tracking-widest transition-all duration-300 ${
+//                 isAvailable
+//                   ? 'bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black shadow-[0_0_20px_rgba(0,255,204,0.2)] hover:shadow-[0_0_35px_rgba(0,255,204,0.4)]'
+//                   : 'bg-white/5 text-gray-500 border border-white/5 cursor-not-allowed'
+//               }`}
+//             >
+//               {isAvailable ? 'Initialize Deployment (Book Now)' : 'Node Locked / Unavailable'}
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* MODAL SYSTEM */}
+//       {isModalOpen && (
+//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+//           <div className="bg-[#090d16] border border-white/10 p-6 rounded-2xl max-w-md w-full relative space-y-6">
+            
+//             <button 
+//               onClick={() => setIsModalOpen(false)} 
+//               className="absolute top-4 right-4 text-gray-500 hover:text-white font-mono text-sm"
+//             >
+//               ✕
+//             </button>
+
+//             {isBooked ? (
+//               <div className="text-center py-8 space-y-3">
+//                 <div className="text-4xl animate-bounce">⚡</div>
+//                 <h3 className="text-xl font-black uppercase text-[#00ffcc] tracking-wide">Node Allocated!</h3>
+//                 <p className="text-xs font-mono text-gray-400">Your lease protocol has been securely compiled.</p>
+//               </div>
+//             ) : (
+//               <>
+//                 <div className="space-y-1 font-mono">
+//                   <span className="text-[10px] text-[#00ffcc] uppercase tracking-widest">Protocol Setup</span>
+//                   <h2 className="text-xl font-bold uppercase tracking-tight text-white">Confirm Node Lease</h2>
+//                   <p className="text-xs text-gray-400">Reviewing registry parameters for <span className="text-white font-bold">{car.carName}</span></p>
+//                 </div>
+
+//                 <form onSubmit={handleBookingConfirm} className="space-y-4 font-mono text-xs">
+//                   <div className="space-y-1">
+//                     <label className="text-gray-500 block">User Node Identifier</label>
+//                     <input 
+//                       required 
+//                       disabled
+//                       type="text" 
+//                       defaultValue={userSession?.name || ""} 
+//                       className="w-full bg-[#030712]/50 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none" 
+//                     />
+//                   </div>
+//                   <div className="space-y-1">
+//                     <label className="text-gray-500 block">Communication Channel</label>
+//                     <input 
+//                       required 
+//                       disabled
+//                       type="email" 
+//                       defaultValue={userSession?.email || ""} 
+//                       className="w-full bg-[#030712]/50 border border-white/10 rounded-xl px-4 py-3 text-gray-400 cursor-not-allowed focus:outline-none" 
+//                     />
+//                   </div>
+                  
+//                   <div className="p-3 bg-white/5 border border-white/5 rounded-xl flex justify-between items-center">
+//                     <span className="text-gray-400">Rate Summary (Per Day):</span>
+//                     <span className="text-[#00ffcc] font-black text-sm">${car.dailyPrice} USD</span>
+//                   </div>
+
+//                   <button 
+//                     type="submit" 
+//                     disabled={isSubmitting}
+//                     className="w-full bg-[#00ffcc] hover:bg-[#00ffcc]/90 text-black font-black uppercase py-3.5 rounded-xl tracking-wider shadow-[0_0_15px_rgba(0,255,204,0.1)] disabled:bg-gray-700 disabled:cursor-not-allowed"
+//                   >
+//                     {isSubmitting ? 'PROCESSING PROTOCOL...' : 'Confirm Secure Lease'}
+//                   </button>
+//                 </form>
+//               </>
+//             )}
+//           </div>
+//         </div>
+//       )}
+//     </main>
+//   );
+// }
 
 
 
