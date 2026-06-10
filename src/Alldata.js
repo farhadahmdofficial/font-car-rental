@@ -19,10 +19,26 @@ export const Alldata = async () => {
 
 // future car 
 export const futurecars = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/future`);
-  const cars = await res.json();
+  try {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/future`, { cache: 'no-store' });
+  if (!res.ok) return []; // যদি কোনো কারণে ব্যাকএন্ড এরর দেয়, তবে সাইট ক্র্যাশ না করে খালি রাখবে
   
-  return cars ||[]; 
+  const cars = await res.json();
+  return cars || [];
+} catch (error) {
+  return []; // নেটওয়ার্ক ফেইল করলেও সাইট সুন্দরভাবে চলবে
+}
+
+
+
+
+  // const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/future`,{
+  //   cache: 'no-store'
+  // });
+  // const cars = await res.json();
+  
+  // return cars ||[]; 
+
 };
 
 // singla data 
@@ -36,14 +52,5 @@ export const carone = async (id,token) => {
   
   return cars ||{}; 
 };
-// export const carone = async (id,token) => {
-//   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`,{
-//     headers: {
-//       authorization: `Bearer ${token}` ||""
-//     }
-//   });
-//   const cars = await res.json();
-  
-//   return cars ||{}; 
-// };
+
 
