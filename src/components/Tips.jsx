@@ -3,8 +3,9 @@
 'use client';
 
 import React from 'react';
+import CarCard from './CarCard';
 
-export default function TipsSection() {
+const Tips = () => {
   const tips = [
     {
       id: '01',
@@ -34,28 +35,25 @@ export default function TipsSection() {
 
   return (
     <section className="relative py-20 bg-[#030712] text-white rounded-2xl my-10 px-6 md:px-12 overflow-hidden border border-[#00ffcc]/10 shadow-2xl w-11/12 mx-auto">
-      
-     
+
+
       <div className="absolute inset-0 z-0 pointer-events-none select-none">
-       
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff01_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px]" />
-        
-     
+
+        <div className="inset-0 bg-[linear-gradient(to_right,#ffffff01_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:32px_32px]" />
+
+
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[350px] w-[350px] rounded-full bg-[#00ffcc]/5 blur-[100px]" />
       </div>
 
-  
+
       <div className="relative z-10">
-        
+
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-          <div className="inline-flex items-center space-x-2 rounded-full border border-[#00ffcc]/20 bg-[#00ffcc]/5 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[#00ffcc]">
-            <span className="flex h-1.5 w-1.5 rounded-full bg-[#00ffcc] animate-pulse" />
-            <span>Operational Directives Active</span>
-          </div>
-          
+          {/*  */}
+
           <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight text-white">
-            Drive <span className="text-[#00ffcc] drop-shadow-[0_0_15px_rgba(0,255,204,0.3)]">Fleet</span> Pro Tips
+           Rent <span className="text-[#00ffcc] drop-shadow-[0_0_15px_rgba(0,255,204,0.3)]"> Ride</span> Pro Tips
           </h2>
           <p className="text-xs sm:text-sm text-gray-400 max-w-md mx-auto leading-relaxed">
             Optimize your premium rental experience with our advanced vehicle grid system instructions.
@@ -67,7 +65,8 @@ export default function TipsSection() {
           {tips.map((tip) => (
             <div
               key={tip.id}
-              className="relative group bg-[#090d1a]/40 backdrop-blur-md p-6 rounded-xl border border-gray-800 hover:border-[#00ffcc]/40 transition-all duration-300 transform hover:-translate-y-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
+              className=" bg-[#090d1a]/40 backdrop-blur-md p-6 rounded-xl border border-gray-800 
+                shadow-[0_4px_20px_rgba(0,0,0,0.4)]"
             >
               {/* Top Row: Icon & ID */}
               <div className="flex justify-between items-center mb-5">
@@ -92,14 +91,16 @@ export default function TipsSection() {
             </div>
           ))}
         </div>
-        
+
       </div>
 
-      
+
       <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#00ffcc]/10 to-transparent z-10" />
     </section>
   );
-}
+};
+
+export default Tips;
 
 
 
@@ -180,3 +181,42 @@ export default function TipsSection() {
 //     </section>
 //   );
 // }
+
+
+
+
+
+
+
+
+
+
+//  {loading ? (
+//           /* ⏳ Loading State Skeleton */
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {[...Array(6)].map((_, idx) => (
+//               <div 
+//                 key={idx} 
+//                 className="h-96 w-full bg-[#090d16]/20 border border-white/5 rounded-2xl animate-pulse flex items-center justify-center text-[10px] font-mono text-gray-600 tracking-widest"
+//               >
+//                 SYNCING NODE DATA...
+//               </div>
+//             ))}
+//           </div>
+//         ) : filteredCars.length > 0 ? (
+//           /* 🏎️ Rendering Screen */
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+//             {filteredCars.map((car, index) => (
+//               <CarCard key={car._id || index} car={car} />
+//             ))}
+//           </div>
+//         ) : (
+//           /* ❌ Empty Search Result Screen */
+//           <div className="border border-dashed border-white/10 rounded-2xl p-16 text-center max-w-xl mx-auto bg-[#090d16]/10 backdrop-blur-sm">
+//             <span className="text-3xl block mb-3">📡</span>
+//             <p className="font-mono text-xs text-rose-500 uppercase tracking-widest">NO ACTIVE NODES MATCHED</p>
+//             <p className="text-[11px] text-gray-500 font-mono mt-1">
+//               The request for "{searchQuery}" compiled 0 system returns. Try another parameter.
+//             </p>
+//           </div>
+//         )}

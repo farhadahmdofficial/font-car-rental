@@ -3,11 +3,11 @@
 
 import Link from 'next/link';
 
-export default function NotFound() {
+const NotFound=()=> {
   return (
     <div className="min-h-screen bg-[#030712] flex flex-col items-center justify-center text-center px-6 relative overflow-hidden">
       
-      {/* 🌌 Background Neon Glow Effects (DriveFleet Matrix Vibe) */}
+      {/* 🌌 Background Neon Glow Effects (RentRideMatrix Vibe) */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#00ffcc]/10 blur-[140px] rounded-full pointer-events-none"></div>
       <div className="absolute bottom-1/4 left-1/2 -translate-x-1/2 translate-y-1/2 w-96 h-96 bg-cyan-500/5 blur-[140px] rounded-full pointer-events-none"></div>
 
@@ -25,7 +25,7 @@ export default function NotFound() {
       </h2>
 
       <p className="text-gray-400 mt-3 max-w-md text-sm md:text-base leading-relaxed font-medium">
-        The URL or vehicle matrix node you are searching for does not exist in our DriveFleet grid network or the link has expired.
+        The URL or vehicle matrix node you are searching for does not exist in our RentRide grid network or the link has expired.
       </p>
 
       {/* 🚀 Action Button (Matching Banner CTA Style) */}
@@ -50,7 +50,7 @@ export default function NotFound() {
 
       {/* 🏁 Footer Tech Subline */}
       <div className="absolute bottom-6 text-xs text-gray-600 font-mono tracking-widest">
-        DRIVEFLEET OS v1.0.0 // TERMINAL_ERR_CODE_404
+        RENTRIDE OS v1.0.0 // TERMINAL_ERR_CODE_404
       </div>
       
       {/* Bottom Border Line Dynamic Divider */}
@@ -66,7 +66,7 @@ export default function NotFound() {
 
 
 
-
+export default NotFound ;
 
 
 

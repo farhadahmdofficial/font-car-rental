@@ -1,0 +1,49 @@
+
+
+
+// const alldata= async ()=>{
+//       const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`)
+
+//    const cars = await res.json();
+// }
+// import { headers } from 'next/headers';
+
+
+// all cars
+export const Alldata = async () => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`);
+  const cars = await res.json();
+  
+  return cars ||[]; 
+};
+
+// future car 
+export const futurecars = async () => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/future`);
+  const cars = await res.json();
+  
+  return cars ||[]; 
+};
+
+// singla data 
+export const carone = async (id,token) => {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`,{
+    headers: {
+      authorization: `Bearer ${token}` ||""
+    }
+  });
+  const cars = await res.json();
+  
+  return cars ||{}; 
+};
+// export const carone = async (id,token) => {
+//   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`,{
+//     headers: {
+//       authorization: `Bearer ${token}` ||""
+//     }
+//   });
+//   const cars = await res.json();
+  
+//   return cars ||{}; 
+// };
+

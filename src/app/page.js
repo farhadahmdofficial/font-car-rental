@@ -1,6 +1,7 @@
 import Banner from "@/components/Banner";
 import FutureSection from "@/components/Future";
-import TipsSection from "@/components/Tips";
+import Tips from "@/components/Tips";
+
 import Image from "next/image";
 
 export default function Home() {
@@ -9,9 +10,9 @@ export default function Home() {
       {/* <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200">Welcome to Next.js 14!</h1> */}
 
       <Banner></Banner>
-      <FutureSection></FutureSection>
+      <FutureSection></FutureSection> 
 
-      <TipsSection></TipsSection>
+    <Tips></Tips>
     </div>
   );
 }

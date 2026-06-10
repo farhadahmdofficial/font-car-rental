@@ -15,14 +15,14 @@ const geistMono = Geist_Mono({
 });
 
 // export const metadata = {
-//   title: "DriveFleet",
+//   title: "",
 //   description: "car rental service for everyone",
 // };
 export const metadata = {
-  title: "DriveFleet | Premium Car Rental Service",
+  title: "RentRide | Premium Car Rental Service",
   description: "Affordable and premium car rental service for everyone.",
   icons: {
-    icon: "/log.png", // 🎯 আপনার ফেভিকন ফাইলটির পাথ
+    icon: "/log.png", 
   },
 };
 

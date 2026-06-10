@@ -1,6 +1,6 @@
-# 🏎️ DriveFleet | Premium Cyberpunk Car Rental Service
+# 🏎️ RentRide | Premium Cyberpunk Car Rental Service
 
-DriveFleet is a modern, full-stack car rental platform featuring a sleek interface, robust authentication, and dynamic real-time vehicle grid telemetry. Built with Next.js 15, Tailwind CSS, and powered by a secure serverless backend.
+RentRide is a modern, full-stack car rental platform featuring a sleek interface, robust authentication, and dynamic real-time vehicle grid telemetry. Built with Next.js 15, Tailwind CSS, and powered by a secure serverless backend.
 
 🔗 **Live Application:** [https://font-car-rental.vercel.app/](https://font-car-rental.vercel.app/)  
 🔗 **Backend Server Matrix:** Active on Vercel

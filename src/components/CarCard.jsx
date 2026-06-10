@@ -1,7 +1,7 @@
 
 
 
-'use client';
+// 'use client';
 
 import Link from 'next/link';
 
@@ -15,10 +15,13 @@ export default function CarCard({ car }) {
     carType, 
     pickupLocation, 
     availabilityStatus, 
-    seatCapacity 
+    seatCapacity ,
+    imageUrl
+
+  
   } = car;
 
-  const isAvailable = availabilityStatus?.toLowerCase() === 'available';
+  // const isAvailable = availabilityStatus?.toLowerCase() === 'available';
 
   return (
     <div className="group relative bg-[#090d16]/40 border border-white/5 rounded-2xl overflow-hidden hover:border-[#00ffcc]/20 transition-all duration-500 backdrop-blur-md flex flex-col justify-between h-full">
@@ -26,18 +29,38 @@ export default function CarCard({ car }) {
       {/* 📸 IMAGE SECTION */}
       <div className="relative w-full h-48 bg-[#030712] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-[#090d16] via-transparent to-transparent z-10 opacity-80" />
+
+
+
         <img 
+  // 🎯 এখানে 'image' এর বদলে লুপের ভেতরের অবজেক্ট থেকে imageUrl নিতে হবে
+  src={imageUrl || image || "https://placehold.co/600x400"} 
+  alt={carName} 
+  className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out select-none" 
+/>
+
+
+
+
+
+        {/* <img 
+         
           src={image} 
           alt={carName} 
           className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out select-none" 
-        />
-        <span className={`absolute top-3 left-3 z-20 font-mono text-[9px] uppercase tracking-widest px-2.5 py-0.5 rounded-md border ${
+        /> */}
+
+
+
+
+
+        {/* <span className={`absolute top-3 left-3 z-20 font-mono text-[9px] uppercase tracking-widest px-2.5 py-0.5 rounded-md border ${
           isAvailable 
             ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
             : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
         }`}>
           {availabilityStatus}
-        </span>
+        </span> */}
       </div>
 
      
