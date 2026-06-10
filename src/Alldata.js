@@ -11,7 +11,7 @@
 
 // all cars
 export const Alldata = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`);
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`,{cache: 'no-store'});
   const cars = await res.json();
   
   return cars ||[]; 
