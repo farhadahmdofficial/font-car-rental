@@ -1,3 +1,8 @@
+
+
+export const dynamic = 'force-dynamic';
+
+
 import Banner from "@/components/Banner";
 import FutureSection from "@/components/Future";
 import Tips from "@/components/Tips";
