@@ -26,7 +26,7 @@ export const futurecars = async () => {
   const cars = await res.json();
   return cars || [];
 } catch (error) {
-  return []; // নেটওয়ার্ক ফেইল করলেও সাইট সুন্দরভাবে চলবে
+  return []; 
 }
 
 

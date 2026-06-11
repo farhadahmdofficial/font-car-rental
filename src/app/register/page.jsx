@@ -617,7 +617,7 @@ const  Register =() => {
   const handleGoogleLogin = async () => {
   try {
     // লগইন প্রসেস শুরু হওয়ার সাথে সাথে টোস্ট দেখানো
-    toast.success('Initializing Google Login...', {
+    toast.success('Google Login...', {
       style: {
         border: '1px solid #00ffcc',
         padding: '16px',
