@@ -609,52 +609,62 @@ const  Register =() => {
 
 
 
-  // const handleGoogleLogin = async () => {
-  //   setError('');
-  //   try {
-  //     console.log('Initializing Better Auth Google OAuth Loop...');
-      
-  //     await authClient.signIn.social({
-  //       provider: "google",
-  //       callbackURL: typeof window !== "undefined" ? `${window.location.origin}/` : "/",         
-  //       errorCallbackURL: typeof window !== "undefined" ? `${window.location.origin}/login` : "/login", 
-  //     });
-
-  //   } catch (err) {
-  //     console.error("Google Auth Error:", err);
-  //     setError('Google Authentication aborted or network handshake failed.');
-  //     toast.error('Google Authentication failed.');
-  //   }
-  // };
-
-
-
-// const handleGoogleLogin = async () => {
-  
-    
-   
-//       await authClient.signIn.social({
-//         provider: "google",
-//         callbackURL: "/" 
-//       });
-
-  
-//   };
+ 
 
 
 
 
   const handleGoogleLogin = async () => {
+  try {
+    // লগইন প্রসেস শুরু হওয়ার সাথে সাথে টোস্ট দেখানো
+    toast.success('Initializing Google Login...', {
+      style: {
+        border: '1px solid #00ffcc',
+        padding: '16px',
+        color: '#fff',
+        background: '#090d16',
+        fontFamily: 'monospace',
+        fontSize: '12px'
+      },
+    });
+
+    // Better Auth গুগল লগইন ট্রিগার
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",         
+    });
+
+  } catch (error) {
+    console.error("Google login error:", error);
+    toast.error('Google Login Failed!', {
+      style: {
+        border: '1px solid #f43f5e',
+        padding: '16px',
+        color: '#fff',
+        background: '#090d16',
+        fontFamily: 'monospace',
+        fontSize: '12px'
+      },
+    });
+  }
+};
+
+
+
+
+
+
+  // const handleGoogleLogin = async () => {
    
       
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/",         
+  //     await authClient.signIn.social({
+  //       provider: "google",
+  //       callbackURL: "/",         
        
-      });
+  //     });
 
    
-  };
+  // };
 
 
 

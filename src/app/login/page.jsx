@@ -172,17 +172,59 @@ const  Login = () => {
 
 
 
-const handleGoogleLogin = async () => {
+
+
+
+  const handleGoogleLogin = async () => {
+  try {
+    // লগইন প্রসেস শুরু হওয়ার সাথে সাথে টোস্ট দেখানো
+    toast.success('Initializing Google Login...', {
+      style: {
+        border: '1px solid #00ffcc',
+        padding: '16px',
+        color: '#fff',
+        background: '#090d16',
+        fontFamily: 'monospace',
+        fontSize: '12px'
+      },
+    });
+
+    // Better Auth গুগল লগইন ট্রিগার
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/",         
+    });
+
+  } catch (error) {
+    console.error("Google login error:", error);
+    toast.error('Google Login Failed!', {
+      style: {
+        border: '1px solid #f43f5e',
+        padding: '16px',
+        color: '#fff',
+        background: '#090d16',
+        fontFamily: 'monospace',
+        fontSize: '12px'
+      },
+    });
+  }
+};
+
+
+
+
+
+// const handleGoogleLogin = async () => {
   
     
    
-      await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/" 
-      });
+//       await authClient.signIn.social({
+//         provider: "google",
+//         callbackURL: "/" 
+//       });
 
   
-  };
+//   };
 
 
 
@@ -196,35 +238,7 @@ const handleGoogleLogin = async () => {
 
   
 
- 
-  // const handleGoogleLogin = async () => {
-  //   setError('');
-    
-  //   try {
-      
-  //     toast.loading(' Google loging...', {
-  //       style: {
-  //         border: '1px solid #00ffcc',
-  //         padding: '12px',
-  //         color: '#fff',
-  //         background: '#090d16',
-  //         fontFamily: 'monospace',
-  //         fontSize: '12px'
-  //       }
-  //     });
 
-  //     //  Better Auth Social Sign-In (Google OAuth)
-  //     await authClient.signIn.social({
-  //       provider: "google",
-  //       callbackURL: "/" 
-  //     });
-
-  //   } catch (err) {
-  //     toast.dismiss(); 
-  //     toast.error('Google Authentication aborted.');
-  //     setError('Google Authentication aborted or token validation failed.');
-  //   }
-  // };
 
   return (
     <div className="min-h-screen bg-[#030712] text-white px-4 py-12 flex items-center justify-center relative overflow-hidden">
