@@ -168,35 +168,63 @@ const  Login = () => {
     // });
   };
 
- 
-  const handleGoogleLogin = async () => {
-    setError('');
-    
-    try {
-      
-      toast.loading('Initializing Google OAuth Loop...', {
-        style: {
-          border: '1px solid #00ffcc',
-          padding: '12px',
-          color: '#fff',
-          background: '#090d16',
-          fontFamily: 'monospace',
-          fontSize: '12px'
-        }
-      });
 
-      //  Better Auth Social Sign-In (Google OAuth)
+
+
+
+const handleGoogleLogin = async () => {
+  
+    
+   
       await authClient.signIn.social({
         provider: "google",
         callbackURL: "/" 
       });
 
-    } catch (err) {
-      toast.dismiss(); 
-      toast.error('Google Authentication aborted.');
-      setError('Google Authentication aborted or token validation failed.');
-    }
+  
   };
+
+
+
+
+
+
+
+
+
+
+
+  
+
+ 
+  // const handleGoogleLogin = async () => {
+  //   setError('');
+    
+  //   try {
+      
+  //     toast.loading(' Google loging...', {
+  //       style: {
+  //         border: '1px solid #00ffcc',
+  //         padding: '12px',
+  //         color: '#fff',
+  //         background: '#090d16',
+  //         fontFamily: 'monospace',
+  //         fontSize: '12px'
+  //       }
+  //     });
+
+  //     //  Better Auth Social Sign-In (Google OAuth)
+  //     await authClient.signIn.social({
+  //       provider: "google",
+  //       callbackURL: "/" 
+  //     });
+
+  //   } catch (err) {
+  //     toast.dismiss(); 
+  //     toast.error('Google Authentication aborted.');
+  //     setError('Google Authentication aborted or token validation failed.');
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-[#030712] text-white px-4 py-12 flex items-center justify-center relative overflow-hidden">
