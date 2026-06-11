@@ -629,25 +629,31 @@ const  Register =() => {
 
 
 
+// const handleGoogleLogin = async () => {
+  
+    
+   
+//       await authClient.signIn.social({
+//         provider: "google",
+//         callbackURL: "/" 
+//       });
+
+  
+//   };
+
 
 
 
   const handleGoogleLogin = async () => {
-    setError(''); // 💡 এখন আর 'setError is not defined' এরর আসবে না
-    try {
-      console.log('Initializing Better Auth Google OAuth Loop...');
+   
       
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: typeof window !== "undefined" ? `${window.location.origin}/` : "/",         
-        errorCallbackURL: typeof window !== "undefined" ? `${window.location.origin}/login` : "/login", 
+        callbackURL: "/",         
+       
       });
 
-    } catch (err) {
-      console.error("Google Auth Error:", err);
-      setError('Google Authentication aborted or network handshake failed.');
-      toast.error('Google Authentication failed.');
-    }
+   
   };
 
 
