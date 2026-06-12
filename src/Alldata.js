@@ -17,6 +17,9 @@ export const Alldata = async () => {
   return cars ||[]; 
 };
 
+
+
+
 // future car 
 export const futurecars = async () => {
 
