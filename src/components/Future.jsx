@@ -2,7 +2,7 @@
 import React from 'react';
 import CarCard from './CarCard';
 import Link from 'next/link';
-import { Alldata, futurecars } from '@/Alldata';
+import { futurecars } from '@/Alldata';
 
 
 //   const Alldata = async () => {
@@ -34,6 +34,7 @@ const Future =async () => {
   // console.log(cars);
 
   const cars = await futurecars();
+  console.log(cars);
 
   //  const cars = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`)
       // const cars=.then((res) => res.json())
