@@ -103,69 +103,7 @@ const  Login = () => {
 
 
 
-    // e.preventDefault();
-    // setError('');
-    // setLoading(true);
-
-    // const { email, password } = formData;
-
-    // if (!email || !password) {
-    //   toast.error("Credentials grid incomplete. Check inputs.");
-    //   setLoading(false);
-    //   return;
-    // }
-
-    //  Better Auth Sign-In Protocol
-    // await authClient.signIn.email({
-    //   email: email,
-    //   password: password,
-    // }, {
-    //   onRequest: () => {
-    //     setLoading(true);
-    //   },
-      
-    //   onSuccess: (ctx) => {
-    //     setLoading(false);
-        
-       
-      //   toast.success('LOGIN SUCCESSFUL!.', {
-      //     style: {
-      //       border: '1px solid #00ffcc',
-      //       padding: '16px',
-      //       color: '#fff',
-      //       background: '#090d16',
-      //       fontFamily: 'monospace',
-      //       fontSize: '12px'
-      //     },
-      //     iconTheme: {
-      //       primary: '#00ffcc',
-      //       secondary: '#090d16',
-      //     },
-      //   });
-
-        
-      //   router.push('/');
-      // },
-  
-    //   onError: (ctx) => {
-    //     setLoading(false);
-    //     const errorMsg = ctx.error.message || 'Invalid credentials matrix.';
-        
-       
-    //     toast.error(errorMsg, {
-    //       style: {
-    //         border: '1px solid #f43f5e',
-    //         padding: '16px',
-    //         color: '#fff',
-    //         background: '#090d16',
-    //         fontFamily: 'monospace',
-    //         fontSize: '12px'
-    //       },
-    //     });
-
-    //     setError(errorMsg);
-    //   }
-    // });
+    
   };
 
 
@@ -177,7 +115,7 @@ const  Login = () => {
 
   const handleGoogleLogin = async () => {
   try {
-    // লগইন প্রসেস শুরু হওয়ার সাথে সাথে টোস্ট দেখানো
+    
     toast.success('Google Login...', {
       style: {
         border: '1px solid #00ffcc',
@@ -189,7 +127,7 @@ const  Login = () => {
       },
     });
 
-    // Better Auth গুগল লগইন ট্রিগার
+  
     await authClient.signIn.social({
       provider: "google",
       callbackURL: "/",         
@@ -261,13 +199,7 @@ const  Login = () => {
           </p> */}
         </div>
 
-        {/* ERROR MESSAGE DISPLAY */}
-        {/* {error && (
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs p-3 rounded-xl font-mono flex items-center space-x-2 animate-pulse">
-            <span>⚠️</span>
-            <span>{error}</span>
-          </div>
-        )} */}
+       
 
         {/*  LOGIN FORM */}
         <form onSubmit={handleLogin} className="space-y-4">

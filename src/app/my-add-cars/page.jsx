@@ -17,7 +17,7 @@ const MyAddCars = () => {
     if (userEmail) {
       setLoading(true);
       
-      // 🎯 ফিক্স ২: কুয়েরি প্যারামিটার হিসেবে ব্যাকএন্ডকে সঠিকভাবে রিকোয়েস্ট পাঠানো
+    
       fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-cars?email=${userEmail}`)
         .then((res) => {
           if (!res.ok) throw new Error("Network response was not ok");
@@ -67,26 +67,7 @@ const handleDelete = async (id) => {
 
 
 
-  // const handleDelete = async (id) => {
-  //   const proceed = window.confirm("Are you sure you want to terminate this vehicle node?");
-  //   if (proceed) {
-  //     try {
-  //       const response = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`, {
-  //         method: "DELETE",
-  //       });
-  //       const data = await response.json();
 
-  //       if (data.deletedCount > 0) {
-  //         alert("Vehicle node deleted successfully! 🗑️");
-  //         // UI থেকে ডিলিট হওয়া গাড়িটি সাথে সাথে রিমুভ করা
-  //         const remaining = cars.filter((car) => car._id !== id);
-  //         setCars(remaining);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error deleting car:", error);
-  //     }
-  //   }
-  // };
 
   if (loading) {
     return (
@@ -98,10 +79,10 @@ const handleDelete = async (id) => {
 
   return (
     <div className="container mx-auto px-4 py-10 min-h-screen relative font-sans bg-[#030712] my-5 rounded-2xl">
-      {/* 🌌 ব্যাকগ্রাউন্ড নিয়ন গ্লো */}
+      
       <div className="absolute top-10 left-10 h-72 w-72 rounded-full bg-[#00ffcc]/5 blur-[120px] pointer-events-none" />
 
-      {/* 📑 সেকশন হেডার */}
+      
 
       {cars.length===0?<h1>addone </h1>: <div className="mb-8 relative z-10">
         <h1 className="text-3xl font-black uppercase tracking-wider text-[#00ffcc] drop-shadow-[0_0_10px_rgba(0,255,204,0.2)]">
@@ -109,14 +90,9 @@ const handleDelete = async (id) => {
         </h1>
         
       </div>}
-      {/* <div className="mb-8 relative z-10">
-        <h1 className="text-3xl font-black uppercase tracking-wider text-[#00ffcc] drop-shadow-[0_0_10px_rgba(0,255,204,0.2)]">
-          My Added Cars ({cars.length})
-        </h1>
-        
-      </div> */}
+     
 
-      {/* 📊 রেসপন্সিভ টেবিল কন্টেইনার */}
+      
       {cars.length === 0 ? (
         <div className="min-h-[40vh] flex flex-col items-center justify-center text-center p-8 bg-[#090d16]/40 border border-white/5 rounded-2xl max-w-2xl mx-auto my-10 backdrop-blur-xl">
           <h2 className="text-lg font-mono uppercase tracking-wider text-white">
@@ -142,7 +118,7 @@ const handleDelete = async (id) => {
               <tbody className="divide-y divide-white/5 text-xs text-gray-300">
                 {cars.map((car) => (
                   <tr key={car._id} className="hover:bg-white/[0.015] transition-colors group">
-                    {/* ১. ইমেজ */}
+                   
                     <td className="p-4 md:p-5">
                       <div className="relative h-12 w-20 rounded-xl overflow-hidden border border-white/10 bg-white/5 shadow-inner group-hover:border-[#00ffcc]/40 transition-all duration-300">
                         <img
@@ -153,27 +129,27 @@ const handleDelete = async (id) => {
                       </div>
                     </td>
 
-                    {/* ২. নাম */}
+                   
                     <td className="p-4 md:p-5 font-bold text-white group-hover:text-[#00ffcc] transition-colors text-sm">
                       {car.carName}
                     </td>
 
-                    {/* ৩. প্রাইজ */}
+                   
                     <td className="p-4 md:p-5 font-mono font-bold text-[#00ffcc]">
                       ${car.dailyPrice} <span className="text-[10px] text-gray-500 font-normal">/ day</span>
                     </td>
 
-                    {/* ৪. টাইপ */}
+                    
                     <td className="p-4 md:p-5 font-mono uppercase text-xs">
                       {car.carType}
                     </td>
 
-                    {/* ৫. লোকেশন */}
+                   
                     <td className="p-4 md:p-5 text-gray-400">
                       {car.location}
                     </td>
 
-                    {/* 🛑 ৬. অ্যাকশন বাটন */}
+                
                     <td className="p-4 md:p-5 text-right whitespace-nowrap">
                       <button
                         onClick={() => handleDelete(car._id)}

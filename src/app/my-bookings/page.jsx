@@ -76,7 +76,7 @@ console.log(bookings, "booking data");
   <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#00ffcc]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#00ffcc]/10 transition-all duration-500"></div>
   <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-rose-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-rose-500/10 transition-all duration-500"></div>
 
-  {/* 🚗 এনিমেটেড সাইবার পালস আইকন */}
+  
   <div className="w-16 h-16 mb-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 group-hover:border-[#00ffcc]/30 group-hover:text-[#00ffcc] transition-all duration-500 shadow-inner">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 animate-pulse">
       <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -114,7 +114,7 @@ console.log(bookings, "booking data");
                 key={booking._id } 
                 className="hover:bg-white/[0.015] transition-colors group"
               >
-                {/* ১. গাড়ির ছবি */}
+               
                 <td className="p-4 md:p-5">
                   <div className="relative h-12 w-20 rounded-xl overflow-hidden border border-white/10 bg-white/5 flex-shrink-0 shadow-inner group-hover:border-[#00ffcc]/40 group-hover:shadow-[0_0_15px_rgba(0,255,204,0.15)] transition-all duration-300">
                     <img
@@ -164,13 +164,7 @@ console.log(bookings, "booking data");
 
 
 
-                  {/* <button
-                    // onClick={() => alert(`Initiating Termination for Booking ID: ${booking._id}`)}
-                    // onClick={() => handleCancel(booking._id)}
-                    className="bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500 hover:text-white text-rose-400 font-mono text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-lg transition-all duration-300 hover:shadow-[0_0_15px_rgba(244,63,94,0.4)]"
-                  >
-                    Cancel
-                  </button> */}
+                 
                 </td>
               </tr>
             ))}
