@@ -9,11 +9,10 @@ const MyAddCars = () => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🎯 ফিক্স ১: AddCars ফর্মে যে ইমেইল ব্যবহার করেছেন, এখানেও হুবহু এক হতে হবে (আপাতত টেস্ট করার জন্য)
-  // প্রোজেক্টে Better Auth থাকলে সেশন থেকে ইমেইলটি নেবেন, যেমন: const userEmail = session?.user?.email;
+  
   const userEmail = "farhad@example.com"; 
 
-  // 🔄 ডাটাবেজ থেকে ইউজারের গাড়িগুলো লোড করার ফাংশন
+ 
   useEffect(() => {
     if (userEmail) {
       setLoading(true);
@@ -35,9 +34,7 @@ const MyAddCars = () => {
     }
   }, [userEmail]);
 
-  // 🗑️ গাড়ি ডিলিট করার হ্যান্ডলার
-
-  // 🔄 আপনার MyAddCars কম্পোনেন্টের ভেতরের handleDelete ফাংশনটি এটি দিয়ে রিপ্লেস করুন
+ 
 const handleDelete = async (id) => {
   const proceed = window.confirm("Are you sure you want to Delete thisn car?");
   if (proceed) {
@@ -54,7 +51,7 @@ const handleDelete = async (id) => {
 
       if (data.deletedCount > 0) {
         toast("car deleted successfully! 🗑️");
-        // UI থেকে ডিলিট হওয়া গাড়িটি সাথে সাথে রিমুভ করা
+        
         const remaining = cars.filter((car) => car._id !== id);
         setCars(remaining);
       } else {

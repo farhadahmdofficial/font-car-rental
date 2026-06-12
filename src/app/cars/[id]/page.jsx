@@ -42,7 +42,7 @@ const CarDetails = async({params }) => {
     // const car  = cars.find(A => A._id == id)
 
 
-    console.log(car ,"new car addd");
+    // console.log(car ,"new car addd");
 
 
 
