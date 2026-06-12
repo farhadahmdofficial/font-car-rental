@@ -43,61 +43,7 @@ console.log(bookings, "booking data");
 
 
 
-// deleta funtin 
 
-
-
-
-
-
-
-// my code 
-  // const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-bookings/${session?.user?.id}`,{
-  //   headers:{
-  //     Authorization :`Bearer ${token}`
-  //   }
-  // })
-
-
-  // const bookings=await res.json();
-  //    console.log(bookings ,"booking data ");
-
-
-
-
-  // new data 
-//   if (!bookings || bookings.length === 0) {
-//     return (<div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-8 bg-[#030712] border border-white/5 rounded-2xl shadow-2xl relative overflow-hidden group max-w-2xl mx-auto my-10 backdrop-blur-xl">
-  
-//   {/* 🌌 ব্যাকগ্রাউন্ড সাইবার গ্লো ইফেক্ট */}
-//   <div className="absolute -top-24 -left-24 w-48 h-48 bg-[#00ffcc]/5 rounded-full blur-3xl pointer-events-none group-hover:bg-[#00ffcc]/10 transition-all duration-500"></div>
-//   <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-rose-500/5 rounded-full blur-3xl pointer-events-none group-hover:bg-rose-500/10 transition-all duration-500"></div>
-
-//   {/* 🚗 এনিমেটেড সাইবার পালস আইকন */}
-//   <div className="w-16 h-16 mb-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-500 group-hover:border-[#00ffcc]/30 group-hover:text-[#00ffcc] transition-all duration-500 shadow-inner">
-//     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 animate-pulse">
-//       <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-//     </svg>
-//   </div>
-
-//   {/* 🔤 ড্রাইভফ্লিট থিম ম্যাচিং টেক্সট */}
-//   <h2 className="text-xl md:text-2xl font-mono uppercase tracking-wider text-white mb-3">
-//    you have  <span className="text-[#00ffcc] font-bold drop-shadow-[0_0_10px_rgba(0,255,204,0.4)]">No Bookings </span>
-//   </h2>
-  
-  
-
-//   {/* 🚀 কল-টু-অ্যাকশন বাটন */}
-
-// </div>
-
-
-//       // <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
-//       //   <h2 className="text-2xl font-bold text-white mb-2">No Bookings Found</h2>
-//       //   <p className="text-gray-400">You have not  booked any cybernetic vehicles yet.</p>
-//       // </div>
-//     );
-//   }
 
 
   return (  <div className="container mx-auto px-4 py-10 min-h-screen  relative font-sans   bg-[#030712] my-5 rounded-2xl">
