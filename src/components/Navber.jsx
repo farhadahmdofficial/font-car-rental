@@ -3,7 +3,7 @@
 "use client"
 import { signOut, useSession } from '@/lib/auth-client';
 // import { signOut } from 'better-auth/api';
-import Image from 'next/image';
+// import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -122,23 +122,7 @@ const Navber = () => {
 
           
           
-          {/* <Link
-            href="/cars"
-            className="ext-xs font-bold uppercase tracking-widest transition-colors duration-300" 
-              
-            
-          >
-            Explore Cars
-          </Link> */}
-{/* 
-          <Link
-            href="/add-car"
-            // className={`text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
-            //   isActive('/add-car') ? 'text-[#00ffcc]' : 'text-gray-400 hover:text-white'
-            // }`}
-          >
-            Add Car
-          </Link> */}
+     
           
       
 
@@ -206,39 +190,7 @@ const Navber = () => {
 
 
 
-        {/* <div className="hidden items-center space-x-4 md:flex">
-        
-           
-                   
-         
-            <Link
-              href="/login"
-              className="rounded-full border border-[#00ffcc]/30 bg-[#00ffcc]/5 px-5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#00ffcc] hover:bg-[#00ffcc]/20 transition-all duration-300"
-            >
-              Login / Register
-            </Link>
-
-
-
-
-        
-        </div> */}
-
-
-        {/* logout button  */}
-
-
-         
-
-
-
-
-
-
-
-
-         
-                {/* <div className="absolute right-0 mt-2 w-56 rounded-xl border border-white/10 bg-[#090d16] p-2 shadow-2xl z-50"> */}
+    
 
                 
 
@@ -347,17 +299,6 @@ const Navber = () => {
 
 
       
-
-
-
-
-
-
-
-
-
-
-
 
       
     </nav>
