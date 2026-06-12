@@ -71,9 +71,12 @@ const Future =async () => {
           {/* 🎴 CARS GRID */}
           {/* 💡 মোবাইলে একদম বর্ডার টু বর্ডার ফিট থাকার জন্য gap এবং padding ব্যালেন্স করা হয়েছে */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 px-1 sm:px-0">
-            {cars?.slice(0, 4).map((car) => (
+            {cars?.map((car) => (
               <CarCard key={car._id} car={car} />
             ))}
+            {/* {cars?.slice(0, 4).map((car) => (
+              <CarCard key={car._id} car={car} />
+            ))} */}
           </div>
 
         </div>
