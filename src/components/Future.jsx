@@ -34,6 +34,7 @@ const Future =async () => {
   // console.log(cars);
 
   const cars = await futurecars();
+  
   console.log(cars);
 
   //  const cars = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`)
