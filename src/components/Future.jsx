@@ -3,6 +3,7 @@ import React from 'react';
 import CarCard from './CarCard';
 import Link from 'next/link';
 import { futurecars } from '@/Alldata';
+// import { futurecars } from '@/Alldata';
 // import { Alldata} from '@/Alldata';
 
 
@@ -20,6 +21,40 @@ import { futurecars } from '@/Alldata';
 // }
 
 
+// const futurecars = async () => {
+//   try {
+//     const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/future`, {
+//       cache: 'no-store'
+//     });
+
+    
+//     const contentType = res.headers.get("content-type");
+//     if (!contentType || !contentType.includes("application/json")) {
+//       console.error("futurecars: Expected JSON, received HTML/Text");
+//       return []; 
+//     }
+
+//     const cars = await res.json();
+//     return cars || []; 
+
+//   } catch (error) {
+//     console.error("Error inside futurecars fetch:", error);
+//     return []; 
+//   }
+// };
+
+
+//  const futurecars = async () => {
+
+
+//  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/future`,{
+//     cache: 'no-store'
+//   });
+//   const cars = await res.json();
+  
+//   return cars ||[]; 
+
+// };
 
 
 const Future =async () => {

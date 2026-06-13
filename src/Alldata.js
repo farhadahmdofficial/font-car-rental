@@ -51,15 +51,52 @@ export const futurecars = async () => {
  
 
 // singla data 
-export const carone = async (id,token) => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`,{
-    headers: {
-      authorization: `Bearer ${token}` ||""
+
+export const carone = async (id, token) => {
+  try {
+   
+    const authHeader = token ? `Bearer ${token}` : "";
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`, {
+      headers: {
+        authorization: authHeader
+      },
+      cache: 'no-store'
+    });
+
+    const contentType = res.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.error("carone: Expected JSON, received HTML/Text");
+      return {};
     }
-  });
-  const cars = await res.json();
-  
-  return cars ||{}; 
+
+    const cars = await res.json();
+    return cars || {}; 
+  } catch (error) {
+    console.error("Error inside carone:", error);
+    return {};
+  }
 };
+
+
+
+
+
+
+
+
+
+
+
+// export const carone = async (id,token) => {
+//   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars/${id}`,{
+//     headers: {
+//       authorization: `Bearer ${token}` ||""
+//     }
+//   });
+//   const cars = await res.json();
+  
+//   return cars ||{}; 
+// };
 
 

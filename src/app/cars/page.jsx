@@ -7,14 +7,15 @@
 
 import Link from 'next/link';
 import CarCard from '@/components/CarCard';
+import { Alldata } from '@/Alldata';
 
 
 
-const Alldata = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`, { cache: 'no-store' });
-  const cars = await res.json();
-  return cars || []; 
-}
+// const Alldata = async () => {
+//   const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/cars`, { cache: 'no-store' });
+//   const cars = await res.json();
+//   return cars || []; 
+// }
 
 const AvailableCars =async () => {
 
@@ -25,7 +26,7 @@ const AvailableCars =async () => {
 
 
 
-const Cars =await Alldata()
+const Cars =await Alldata();
   
 
   

@@ -26,8 +26,6 @@ const MyBookings = async () => {
 
   // console.log(session.user.id);
 
-
-
 const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-bookings?userId=${session?.user?.id}`, {
   headers: {
     Authorization: `Bearer ${token}`

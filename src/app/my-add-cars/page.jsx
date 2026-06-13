@@ -12,27 +12,55 @@ const MyAddCars = () => {
   
   const userEmail = "farhad@example.com"; 
 
- 
   useEffect(() => {
     if (userEmail) {
-      setLoading(true);
+      // setLoading(true);
       
-    
       fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-cars?email=${userEmail}`)
         .then((res) => {
           if (!res.ok) throw new Error("Network response was not ok");
+          
+         
+          const contentType = res.headers.get("content-type");
+          if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("Expected JSON response, but received HTML/Text");
+          }
+          
           return res.json();
         })
         .then((data) => {
-          setCars(data);
+          setCars(data || []);
           setLoading(false);
         })
         .catch((err) => {
           console.error("Error fetching my cars:", err);
+          setCars([]); 
           setLoading(false);
         });
     }
   }, [userEmail]);
+
+ 
+  // useEffect(() => {
+  //   if (userEmail) {
+  //     setLoading(true);
+      
+    
+  //     fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/my-cars?email=${userEmail}`)
+  //       .then((res) => {
+  //         if (!res.ok) throw new Error("Network response was not ok");
+  //         return res.json();
+  //       })
+  //       .then((data) => {
+  //         setCars(data);
+  //         setLoading(false);
+  //       })
+  //       .catch((err) => {
+  //         console.error("Error fetching my cars:", err);
+  //         setLoading(false);
+  //       });
+  //   }
+  // }, [userEmail]);
 
  
 const handleDelete = async (id) => {
@@ -50,7 +78,7 @@ const handleDelete = async (id) => {
       const data = await response.json();
 
       if (data.deletedCount > 0) {
-        toast("car deleted successfully! 🗑️");
+        toast("car deleted successfully! ");
         
         const remaining = cars.filter((car) => car._id !== id);
         setCars(remaining);
@@ -69,13 +97,13 @@ const handleDelete = async (id) => {
 
 
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#030712] flex items-center justify-center text-[#00ffcc] font-mono tracking-widest animate-pulse">
-        LOADING SYSTEM DATA...
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-[#030712] flex items-center justify-center text-[#00ffcc] font-mono tracking-widest animate-pulse">
+  //       LOADING  DATA...
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="container mx-auto px-4 py-10 min-h-screen relative font-sans bg-[#030712] my-5 rounded-2xl">
